@@ -5,7 +5,7 @@ from app.extensions import db
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from app.models import User, Ride
+    from app.models import User, Ride, Review
 
 class DriverData(db.Model):
     __tablename__ = 'driver_data'
@@ -20,7 +20,15 @@ class DriverData(db.Model):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
     user: Mapped['User'] = relationship('User', back_populates='driver_data')
 
-    hosted_rides: Mapped[list['Ride']] = relationship('Ride', back_populates='driver', cascade='all, delete-orphan')
+    hosted_rides: Mapped[list['Ride']] = relationship('Ride', back_populates='driver')
+
+    reviews: Mapped[list['Review']] = relationship('Review', back_populates='driver', cascade='all, delete-orphan')
+
+    @property
+    def average_rating(self) -> Optional[float]:
+        if not self.reviews:
+            return None
+        return round(sum(review.stars for review in self.reviews) / len(self.reviews), 1)
 
     def set_as_approved(self, approved: bool):
         self.is_approved = approved
@@ -40,10 +48,11 @@ class DriverData(db.Model):
             'vehicle_data': self.vehicle_data,
             'license_plate': self.license_plate,
             'is_approved': self.is_approved,
-            'approved_at': self.approved_at,
+            'approved_at': self.approved_at.isoformat() if self.approved_at else None,
             'user_id': self.user_id,
-            'hosted_rides': [ride.id for ride in self.hosted_rides]
+            'hosted_rides': [ride.id for ride in self.hosted_rides],
+            'average_rating': self.average_rating
         }
 
     def __repr__(self) -> str:
-        return f"<DriverData id={self.id} license_plate={self.license_plate} is_approved={self.is_approved}>"
+        return f'<DriverData id={self.id} license_plate={self.license_plate} is_approved={self.is_approved}>'

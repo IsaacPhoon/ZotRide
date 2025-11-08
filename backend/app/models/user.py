@@ -5,7 +5,7 @@ from app.extensions import db
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from app.models import DriverData, UserOrganizationData, UserRideData
+    from app.models import DriverData, UserOrganizationData, UserRideData, Review
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -20,6 +20,8 @@ class User(db.Model):
     driver_data: Mapped[Optional['DriverData']] =  relationship('DriverData', back_populates='user', cascade='all, delete-orphan')
     taken_rides: Mapped[list['UserRideData']] = relationship('UserRideData', back_populates='user', cascade='all, delete-orphan')
     organizations: Mapped[list['UserOrganizationData']] = relationship('UserOrganizationData', back_populates='user', cascade='all, delete-orphan')
+
+    ratings_authored: Mapped[list['Review']] = relationship('Review', back_populates='author', cascade='all, delete-orphan')
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

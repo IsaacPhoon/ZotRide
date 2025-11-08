@@ -4,10 +4,11 @@ import Home from "./components/Home";
 import Profile from "./components/Profile";
 import AboutPage from "./components/AboutPage";
 import DriverPage from "./components/DriverPage";
+import Organizations from "./components/Organizations";
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<
-    "HOME" | "ABOUT" | "DRIVER" | "PROFILE"
+    "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE"
   >("HOME");
 
   const renderPage = () => {
@@ -22,6 +23,8 @@ const App: React.FC = () => {
         );
       case "DRIVER":
         return <DriverPage />;
+      case "ORGANIZATIONS":
+        return <Organizations />;
       case "PROFILE":
         return <Profile />;
       default:

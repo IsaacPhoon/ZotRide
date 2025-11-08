@@ -2,28 +2,41 @@ import { useState } from "react";
 import NavbarItem from "./NavbarItem";
 
 const Navbar = () => {
-  const [activeItem, setActiveItem] = useState<'HOME' | 'ABOUT' | 'PROFILE'>('HOME');
+  const [activeItem, setActiveItem] = useState<"HOME" | "ABOUT" | "PROFILE">(
+    "HOME"
+  );
 
   return (
-    <div className="navbar border border-black w-19/20 h-20 rounded-full justify-center mt-4">
-      <div className="navbar-start px-4 text-black">
-        <div></div>
-      </div>
-      <div className="navbar-center hidden lg:flex text-black">
-        <div className="flex gap-6">
-          <div onClick={() => setActiveItem('HOME')} className="cursor-pointer">
-            <NavbarItem text="HOME" active={activeItem === 'HOME'} />
-          </div>
-          <div onClick={() => setActiveItem('ABOUT')} className="cursor-pointer">
-            <NavbarItem text="ABOUT" active={activeItem === 'ABOUT'} />
-          </div>
-          <div onClick={() => setActiveItem('PROFILE')} className="cursor-pointer">
-            <NavbarItem text="PROFILE" active={activeItem === 'PROFILE'} />
+    <div className="flex justify-center w-full">
+      <div className="navbar border border-black w-19/20 h-20 rounded-full justify-center mt-4">
+        <div className="navbar-start px-4 text-black">
+          <div></div>
+        </div>
+        <div className="navbar-center hidden lg:flex text-black">
+          <div className="flex gap-6">
+            <div
+              onClick={() => setActiveItem("HOME")}
+              className="cursor-pointer"
+            >
+              <NavbarItem text="HOME" active={activeItem === "HOME"} />
+            </div>
+            <div
+              onClick={() => setActiveItem("ABOUT")}
+              className="cursor-pointer"
+            >
+              <NavbarItem text="ABOUT" active={activeItem === "ABOUT"} />
+            </div>
+            <div
+              onClick={() => setActiveItem("PROFILE")}
+              className="cursor-pointer"
+            >
+              <NavbarItem text="PROFILE" active={activeItem === "PROFILE"} />
+            </div>
           </div>
         </div>
-      </div>
-      <div className="navbar-end px-4">
-        <div></div>
+        <div className="navbar-end px-4">
+          <div></div>
+        </div>
       </div>
     </div>
   );

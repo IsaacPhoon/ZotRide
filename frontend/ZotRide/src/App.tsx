@@ -4,10 +4,10 @@ import Introduction from "./components/Introduction";
 import IntroductionGrid from "./components/IntroductionGrid";
 const App: React.FC = () => {
   return (
-    <div className="flex bg-white min-h-screen justify-center">
-      <Navbar />
-      <Introduction />
-      <IntroductionGrid />
+    <div className="flex flex-col bg-white min-h-screen w-full">
+        <Navbar />
+        <Introduction />
+        <IntroductionGrid />
     </div>
   );
 };

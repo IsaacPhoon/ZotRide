@@ -2,36 +2,44 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import select
 from app.extensions import db
 from app.models import Review, DriverData, User, Ride, UserRideData
+from app.auth_utils import token_required
 
 review_bp = Blueprint('review', __name__)
 
 
 @review_bp.route('/reviews', methods=['POST'])
-def create_review():
+@token_required
+def create_review(current_user):
     """
     Create a new review for a driver after completing a ride.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Expected JSON body:
     {
         "driver_id": 1,
-        "author_id": 2,
         "ride_id": 3,
         "stars": 4.5,
         "comment": "Great driver, very friendly!"
     }
 
+    Note: author_id is automatically set from the authenticated user.
+
     Returns:
         201: Review created successfully
         400: Invalid request data or missing required fields
-        404: Driver, author, or ride not found
+        401: Authentication required
+        404: Driver or ride not found
         409: Review already exists for this ride and author
         403: Author was not a rider on this ride or ride is not completed
     """
     try:
         data = request.get_json()
 
-        # Validate required fields
-        required_fields = ['driver_id', 'author_id', 'ride_id', 'stars', 'comment']
+        # Validate required fields (author_id is now taken from current_user)
+        required_fields = ['driver_id', 'ride_id', 'stars', 'comment']
         if not all(field in data for field in required_fields):
             return jsonify({'error': 'Missing required fields'}), 400
 
@@ -43,11 +51,6 @@ def create_review():
         driver = db.session.get(DriverData, data['driver_id'])
         if not driver:
             return jsonify({'error': 'Driver not found'}), 404
-
-        # Check if author (user) exists
-        author = db.session.get(User, data['author_id'])
-        if not author:
-            return jsonify({'error': 'Author not found'}), 404
 
         # Check if ride exists
         ride = db.session.get(Ride, data['ride_id'])
@@ -66,7 +69,7 @@ def create_review():
         rider_data = db.session.execute(
             select(UserRideData).where(
                 UserRideData.ride_id == data['ride_id'],
-                UserRideData.user_id == data['author_id']
+                UserRideData.user_id == current_user.id
             )
         ).scalar_one_or_none()
 
@@ -77,17 +80,17 @@ def create_review():
         existing_review = db.session.execute(
             select(Review).where(
                 Review.ride_id == data['ride_id'],
-                Review.author_id == data['author_id']
+                Review.author_id == current_user.id
             )
         ).scalar_one_or_none()
 
         if existing_review:
             return jsonify({'error': 'You have already reviewed this ride'}), 409
 
-        # Create new review
+        # Create new review (using current_user.id as author_id)
         review = Review(
             driver_id=data['driver_id'],
-            author_id=data['author_id'],
+            author_id=current_user.id,
             ride_id=data['ride_id'],
             stars=data['stars'],
             comment=data['comment']
@@ -104,9 +107,14 @@ def create_review():
 
 
 @review_bp.route('/reviews', methods=['GET'])
-def get_reviews():
+@token_required
+def get_reviews(current_user):
     """
     Get all reviews with optional filtering.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - driver_id: Filter by driver (optional)
@@ -118,6 +126,7 @@ def get_reviews():
 
     Returns:
         200: List of reviews matching the filters
+        401: Authentication required
     """
     try:
         driver_id = request.args.get('driver_id', type=int)
@@ -151,15 +160,21 @@ def get_reviews():
 
 
 @review_bp.route('/reviews/<int:review_id>', methods=['GET'])
-def get_review(review_id):
+@token_required
+def get_review(review_id, current_user):
     """
     Get a specific review by ID.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         review_id: The ID of the review to retrieve
 
     Returns:
         200: Review data
+        401: Authentication required
         404: Review not found
     """
     try:
@@ -175,9 +190,14 @@ def get_review(review_id):
 
 
 @review_bp.route('/reviews/<int:review_id>', methods=['PUT'])
-def update_review(review_id):
+@token_required
+def update_review(review_id, current_user):
     """
     Update an existing review.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         review_id: The ID of the review to update
@@ -188,9 +208,13 @@ def update_review(review_id):
         "comment": "Updated comment"
     }
 
+    Note: Only the author of the review can update it.
+
     Returns:
         200: Review updated successfully
         400: Invalid request data
+        401: Authentication required
+        403: Not authorized to update this review
         404: Review not found
     """
     try:
@@ -198,6 +222,10 @@ def update_review(review_id):
 
         if not review:
             return jsonify({'error': 'Review not found'}), 404
+
+        # Check if the current user is the author of the review
+        if review.author_id != current_user.id:
+            return jsonify({'error': 'You are not authorized to update this review'}), 403
 
         data = request.get_json()
 
@@ -220,15 +248,24 @@ def update_review(review_id):
 
 
 @review_bp.route('/reviews/<int:review_id>', methods=['DELETE'])
-def delete_review(review_id):
+@token_required
+def delete_review(review_id, current_user):
     """
     Delete a review.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         review_id: The ID of the review to delete
 
+    Note: Only the author of the review can delete it.
+
     Returns:
         200: Review deleted successfully
+        401: Authentication required
+        403: Not authorized to delete this review
         404: Review not found
     """
     try:
@@ -236,6 +273,10 @@ def delete_review(review_id):
 
         if not review:
             return jsonify({'error': 'Review not found'}), 404
+
+        # Check if the current user is the author of the review
+        if review.author_id != current_user.id:
+            return jsonify({'error': 'You are not authorized to delete this review'}), 403
 
         db.session.delete(review)
         db.session.commit()
@@ -248,9 +289,14 @@ def delete_review(review_id):
 
 
 @review_bp.route('/drivers/<int:driver_id>/reviews', methods=['GET'])
-def get_driver_reviews(driver_id):
+@token_required
+def get_driver_reviews(driver_id, current_user):
     """
     Get all reviews for a specific driver.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         driver_id: The ID of the driver
@@ -262,6 +308,7 @@ def get_driver_reviews(driver_id):
 
     Returns:
         200: List of reviews for the driver with average rating
+        401: Authentication required
         404: Driver not found
     """
     try:
@@ -297,15 +344,21 @@ def get_driver_reviews(driver_id):
 
 
 @review_bp.route('/rides/<int:ride_id>/reviews', methods=['GET'])
-def get_ride_reviews(ride_id):
+@token_required
+def get_ride_reviews(ride_id, current_user):
     """
     Get all reviews for a specific ride.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride
 
     Returns:
         200: List of reviews for the ride
+        401: Authentication required
         404: Ride not found
     """
     try:
@@ -329,9 +382,14 @@ def get_ride_reviews(ride_id):
 
 
 @review_bp.route('/users/<int:user_id>/reviews', methods=['GET'])
-def get_user_authored_reviews(user_id):
+@token_required
+def get_user_authored_reviews(user_id, current_user):
     """
     Get all reviews authored by a specific user.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         user_id: The ID of the user
@@ -342,6 +400,7 @@ def get_user_authored_reviews(user_id):
 
     Returns:
         200: List of reviews authored by the user
+        401: Authentication required
         404: User not found
     """
     try:

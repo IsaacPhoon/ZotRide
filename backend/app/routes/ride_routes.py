@@ -3,14 +3,20 @@ from sqlalchemy import select, and_
 from datetime import datetime, timezone
 from app.extensions import db
 from app.models import Ride, DriverData, User, UserRideData, Organization
+from app.auth_utils import token_required
 
 ride_bp = Blueprint('ride', __name__)
 
 
 @ride_bp.route('/rides', methods=['POST'])
-def create_ride():
+@token_required
+def create_ride(current_user):
     """
     Create a new ride (either a driver post or rider request).
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Expected JSON body:
     {
@@ -78,9 +84,14 @@ def create_ride():
 
 
 @ride_bp.route('/rides', methods=['GET'])
-def get_rides():
+@token_required
+def get_rides(current_user):
     """
     Get all rides with optional filtering.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - status: Filter by status (active/completed/cancelled) (optional)
@@ -126,9 +137,14 @@ def get_rides():
 
 
 @ride_bp.route('/rides/<int:ride_id>', methods=['GET'])
-def get_ride(ride_id):
+@token_required
+def get_ride(ride_id, current_user):
     """
     Get a specific ride by ID.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride to retrieve
@@ -150,9 +166,14 @@ def get_ride(ride_id):
 
 
 @ride_bp.route('/rides/<int:ride_id>', methods=['PUT'])
-def update_ride(ride_id):
+@token_required
+def update_ride(ride_id, current_user):
     """
     Update a ride's information.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride to update
@@ -172,7 +193,7 @@ def update_ride(ride_id):
     Returns:
         200: Ride updated successfully
         404: Ride not found
-        403: Driver is not approved or ride is completed
+        403: Driver is not approved, ride is completed, or unauthorized
         400: Invalid request data
     """
     try:
@@ -229,9 +250,14 @@ def update_ride(ride_id):
 
 
 @ride_bp.route('/rides/<int:ride_id>', methods=['DELETE'])
-def delete_ride(ride_id):
+@token_required
+def delete_ride(ride_id, current_user):
     """
     Delete a ride.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride to delete
@@ -239,7 +265,8 @@ def delete_ride(ride_id):
     Returns:
         204: Ride deleted successfully
         404: Ride not found
-    
+        403: Unauthorized - only ride creator or driver can delete
+
     Note: Deleting a ride will also delete all associated reviews and rider associations.
     """
     try:
@@ -259,22 +286,22 @@ def delete_ride(ride_id):
 
 
 @ride_bp.route('/rides/<int:ride_id>/complete', methods=['POST'])
-def complete_ride(ride_id):
+@token_required
+def complete_ride(ride_id, current_user):
     """
     Mark a ride as completed. This enables riders to review the driver.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride to complete
 
-    Expected JSON body:
-    {
-        "driver_id": 1  # To verify the correct driver is completing the ride
-    }
-
     Returns:
         200: Ride marked as completed
-        404: Ride not found
-        403: Unauthorized - driver mismatch or ride already completed
+        404: Ride not found or driver not found
+        403: Unauthorized - only the assigned driver can complete or ride already completed
         400: Invalid request data or ride has no driver
     """
     try:
@@ -283,17 +310,17 @@ def complete_ride(ride_id):
         if not ride:
             return jsonify({'error': 'Ride not found'}), 404
 
-        data = request.get_json()
-
-        if 'driver_id' not in data:
-            return jsonify({'error': 'Missing driver_id'}), 400
-
         # Verify ride has a driver
         if not ride.driver_id:
             return jsonify({'error': 'Cannot complete a ride without a driver'}), 400
 
-        # Verify the driver completing the ride is the assigned driver
-        if ride.driver_id != data['driver_id']:
+        # Get driver data to verify the current user is the driver
+        driver = db.session.get(DriverData, ride.driver_id)
+        if not driver:
+            return jsonify({'error': 'Driver not found'}), 404
+
+        # Verify the current user is the assigned driver
+        if driver.user_id != current_user.id:
             return jsonify({'error': 'Only the assigned driver can complete this ride'}), 403
 
         # Check if already completed
@@ -315,38 +342,36 @@ def complete_ride(ride_id):
 
 
 @ride_bp.route('/rides/<int:ride_id>/join', methods=['POST'])
-def join_ride(ride_id):
+@token_required
+def join_ride(ride_id, current_user):
     """
     Join a ride as a rider.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride to join
 
     Expected JSON body:
     {
-        "user_id": 1,
         "user_comment": "Looking forward to the ride!"  # Optional
     }
 
     Returns:
         200: Successfully joined the ride
         400: Ride is full, user already joined, or invalid request
-        404: Ride or user not found
+        404: Ride not found
+        403: Driver cannot join their own ride
     """
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
 
-        if 'user_id' not in data:
-            return jsonify({'error': 'Missing user_id'}), 400
-
-        # Get ride and user
+        # Get ride
         ride = db.session.get(Ride, ride_id)
         if not ride:
             return jsonify({'error': 'Ride not found'}), 404
-
-        user = db.session.get(User, data['user_id'])
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
 
         # Check if ride is active
         if ride.status != 'active':
@@ -359,14 +384,14 @@ def join_ride(ride_id):
         # Check if user is the driver (prevent driver from joining their own ride)
         if ride.driver_id:
             driver = db.session.get(DriverData, ride.driver_id)
-            if driver and driver.user_id == data['user_id']:
-                return jsonify({'error': 'Driver cannot join their own ride as a rider'}), 400
+            if driver and driver.user_id == current_user.id:
+                return jsonify({'error': 'Driver cannot join their own ride as a rider'}), 403
 
         # Check if user already joined this ride
         existing = db.session.execute(
             select(UserRideData).where(
                 and_(
-                    UserRideData.user_id == data['user_id'],
+                    UserRideData.user_id == current_user.id,
                     UserRideData.ride_id == ride_id
                 )
             )
@@ -377,7 +402,7 @@ def join_ride(ride_id):
 
         # Create user-ride association
         user_ride_data = UserRideData(
-            user_id=data['user_id'],
+            user_id=current_user.id,
             ride_id=ride_id,
             user_comment=data.get('user_comment')
         )
@@ -396,29 +421,24 @@ def join_ride(ride_id):
 
 
 @ride_bp.route('/rides/<int:ride_id>/leave', methods=['POST'])
-def leave_ride(ride_id):
+@token_required
+def leave_ride(ride_id, current_user):
     """
     Leave a ride as a rider.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride to leave
 
-    Expected JSON body:
-    {
-        "user_id": 1
-    }
-
     Returns:
         200: Successfully left the ride
-        404: Ride, user, or user-ride association not found
+        404: Ride or user-ride association not found
         400: Invalid request data
     """
     try:
-        data = request.get_json()
-
-        if 'user_id' not in data:
-            return jsonify({'error': 'Missing user_id'}), 400
-
         # Get ride
         ride = db.session.get(Ride, ride_id)
         if not ride:
@@ -428,7 +448,7 @@ def leave_ride(ride_id):
         user_ride_data = db.session.execute(
             select(UserRideData).where(
                 and_(
-                    UserRideData.user_id == data['user_id'],
+                    UserRideData.user_id == current_user.id,
                     UserRideData.ride_id == ride_id
                 )
             )
@@ -451,9 +471,14 @@ def leave_ride(ride_id):
 
 
 @ride_bp.route('/rides/<int:ride_id>/riders', methods=['GET'])
-def get_ride_riders(ride_id):
+@token_required
+def get_ride_riders(ride_id, current_user):
     """
     Get all riders for a specific ride.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         ride_id: The ID of the ride
@@ -486,9 +511,14 @@ def get_ride_riders(ride_id):
 
 
 @ride_bp.route('/rides/search', methods=['GET'])
-def search_rides():
+@token_required
+def search_rides(current_user):
     """
     Search for rides based on various criteria.
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - pickup_address: Search in pickup address (partial match) (optional)
@@ -537,9 +567,14 @@ def search_rides():
 
 
 @ride_bp.route('/rides/rider-requests', methods=['GET'])
-def get_rider_requests():
+@token_required
+def get_rider_requests(current_user):
     """
     Get all rider requests (rides without a driver).
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - limit: Maximum number of rides to return (optional)
@@ -571,9 +606,14 @@ def get_rider_requests():
 
 
 @ride_bp.route('/rides/driver-posts', methods=['GET'])
-def get_driver_posts():
+@token_required
+def get_driver_posts(current_user):
     """
     Get all driver posts (rides with a driver).
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - limit: Maximum number of rides to return (optional)

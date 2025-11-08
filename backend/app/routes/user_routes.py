@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import select
 from app.extensions import db
 from app.models import User
+from app.auth_utils import token_required, admin_required
 
 user_bp = Blueprint('user', __name__)
 
@@ -9,6 +10,10 @@ user_bp = Blueprint('user', __name__)
 @user_bp.route('/users', methods=['POST'])
 def create_user():
     """
+    DEPRECATED: Use /api/auth/google instead for user registration.
+
+    This endpoint is kept for backward compatibility and testing purposes only.
+
     Create a new user.
 
     Expected JSON body:
@@ -32,6 +37,10 @@ def create_user():
         required_fields = ['email', 'name', 'gender', 'preferred_contact']
         if not all(field in data for field in required_fields):
             return jsonify({'error': 'Missing required fields'}), 400
+
+        # Validate UCI email
+        if not data['email'].endswith('@uci.edu'):
+            return jsonify({'error': 'Only UC Irvine email addresses (@uci.edu) are allowed'}), 400
 
         # Check if user already exists
         existing_user = db.session.execute(
@@ -61,9 +70,13 @@ def create_user():
 
 
 @user_bp.route('/users', methods=['GET'])
-def get_users():
+@token_required
+def get_users(current_user):
     """
-    Get all users.
+    Get all users. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - limit: Maximum number of users to return (optional)
@@ -71,6 +84,7 @@ def get_users():
 
     Returns:
         200: List of all users
+        401: Not authenticated
     """
     try:
         limit = request.args.get('limit', type=int)
@@ -89,15 +103,20 @@ def get_users():
 
 
 @user_bp.route('/users/<int:user_id>', methods=['GET'])
-def get_user(user_id):
+@token_required
+def get_user(current_user, user_id):
     """
-    Get a specific user by ID.
+    Get a specific user by ID. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         user_id: The ID of the user to retrieve
 
     Returns:
         200: User data
+        401: Not authenticated
         404: User not found
     """
     try:
@@ -113,9 +132,14 @@ def get_user(user_id):
 
 
 @user_bp.route('/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
+@token_required
+def update_user(current_user, user_id):
     """
-    Update a user's information.
+    Update a user's information. Requires authentication.
+    Users can only update their own profile unless they are system admins.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         user_id: The ID of the user to update
@@ -129,10 +153,16 @@ def update_user(user_id):
 
     Returns:
         200: User updated successfully with updated user data
+        401: Not authenticated
+        403: Forbidden - trying to update another user's profile
         404: User not found
         400: Invalid request data
     """
     try:
+        # Check if user is trying to update their own profile or is an admin
+        if current_user.id != user_id and not current_user.is_system_admin:
+            return jsonify({'error': 'You can only update your own profile'}), 403
+
         user = db.session.get(User, user_id)
 
         if not user:
@@ -158,18 +188,29 @@ def update_user(user_id):
 
 
 @user_bp.route('/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
+@token_required
+def delete_user(current_user, user_id):
     """
-    Delete a user.
+    Delete a user. Requires authentication.
+    Users can only delete their own account unless they are system admins.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         user_id: The ID of the user to delete
 
     Returns:
         204: User deleted successfully
+        401: Not authenticated
+        403: Forbidden - trying to delete another user's account
         404: User not found
     """
     try:
+        # Check if user is trying to delete their own account or is an admin
+        if current_user.id != user_id and not current_user.is_system_admin:
+            return jsonify({'error': 'You can only delete your own account'}), 403
+
         user = db.session.get(User, user_id)
 
         if not user:
@@ -186,15 +227,20 @@ def delete_user(user_id):
 
 
 @user_bp.route('/users/<int:user_id>/organizations', methods=['GET'])
-def get_user_organizations(user_id):
+@token_required
+def get_user_organizations(current_user, user_id):
     """
-    Get all organizations a user belongs to.
+    Get all organizations a user belongs to. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         user_id: The ID of the user
 
     Returns:
         200: List of organizations with user's role in each
+        401: Not authenticated
         404: User not found
     """
     try:
@@ -221,15 +267,20 @@ def get_user_organizations(user_id):
 
 
 @user_bp.route('/users/<int:user_id>/rides', methods=['GET'])
-def get_user_rides(user_id):
+@token_required
+def get_user_rides(current_user, user_id):
     """
-    Get all rides a user has joined.
+    Get all rides a user has joined. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         user_id: The ID of the user
 
     Returns:
         200: List of rides the user has joined
+        401: Not authenticated
         404: User not found
     """
     try:
@@ -252,15 +303,20 @@ def get_user_rides(user_id):
 
 
 @user_bp.route('/users/<int:user_id>/driver-data', methods=['GET'])
-def get_user_driver_data(user_id):
+@token_required
+def get_user_driver_data(current_user, user_id):
     """
-    Get driver data for a specific user.
+    Get driver data for a specific user. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         user_id: The ID of the user
 
     Returns:
         200: Driver data if exists
+        401: Not authenticated
         404: User not found or user is not a driver
     """
     try:

@@ -2,35 +2,39 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import select, and_
 from app.extensions import db
 from app.models import Organization, UserOrganizationData, User
+from app.auth_utils import token_required
 
 organization_bp = Blueprint('organization', __name__)
 
 
 @organization_bp.route('/organizations', methods=['POST'])
-def create_organization():
+@token_required
+def create_organization(current_user):
     """
-    Create a new organization.
+    Create a new organization. Requires authentication.
+    The authenticated user will become the owner of the organization.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Expected JSON body:
     {
         "name": "UCI Hiking Club",
-        "description": "A club for hiking enthusiasts at UCI",  # Optional
-        "owner_user_id": 1  # User ID of the organization creator/owner
+        "description": "A club for hiking enthusiasts at UCI"  # Optional
     }
 
     Returns:
         201: Organization created successfully
         400: Invalid request data or missing required fields
-        404: Owner user not found
+        401: Authentication required
         409: Organization with this name already exists
     """
     try:
         data = request.get_json()
 
         # Validate required fields
-        required_fields = ['name', 'owner_user_id']
-        if not all(field in data for field in required_fields):
-            return jsonify({'error': 'Missing required fields'}), 400
+        if 'name' not in data:
+            return jsonify({'error': 'Missing required field: name'}), 400
 
         # Check if organization name already exists
         existing_org = db.session.execute(
@@ -39,11 +43,6 @@ def create_organization():
 
         if existing_org:
             return jsonify({'error': 'Organization with this name already exists'}), 409
-
-        # Check if owner user exists
-        owner = db.session.get(User, data['owner_user_id'])
-        if not owner:
-            return jsonify({'error': 'Owner user not found'}), 404
 
         # Create new organization
         organization = Organization(
@@ -54,9 +53,9 @@ def create_organization():
         db.session.add(organization)
         db.session.flush()  # Get the organization ID
 
-        # Add owner as a member with owner privileges
+        # Add authenticated user as owner with owner privileges
         owner_data = UserOrganizationData(
-            user_id=data['owner_user_id'],
+            user_id=current_user.id,
             organization_id=organization.id,
             is_owner=True,
             is_admin=True,  # Owners are also admins
@@ -74,9 +73,13 @@ def create_organization():
 
 
 @organization_bp.route('/organizations', methods=['GET'])
-def get_organizations():
+@token_required
+def get_organizations(current_user):
     """
-    Get all organizations.
+    Get all organizations. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - limit: Maximum number of organizations to return (optional)
@@ -84,6 +87,7 @@ def get_organizations():
 
     Returns:
         200: List of all organizations
+        401: Authentication required
     """
     try:
         limit = request.args.get('limit', type=int)
@@ -102,15 +106,20 @@ def get_organizations():
 
 
 @organization_bp.route('/organizations/<int:org_id>', methods=['GET'])
-def get_organization(org_id):
+@token_required
+def get_organization(org_id, current_user):
     """
-    Get a specific organization by ID.
+    Get a specific organization by ID. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization to retrieve
 
     Returns:
         200: Organization data
+        401: Authentication required
         404: Organization not found
     """
     try:
@@ -126,9 +135,13 @@ def get_organization(org_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>', methods=['PUT'])
-def update_organization(org_id):
+@token_required
+def update_organization(org_id, current_user):
     """
-    Update an organization's information (owner/admin only).
+    Update an organization's information (owner/admin only). Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization to update
@@ -136,14 +149,14 @@ def update_organization(org_id):
     Expected JSON body:
     {
         "name": "Updated Club Name",  # Optional
-        "description": "Updated description",  # Optional
-        "requesting_user_id": 1  # User ID of the person making this request
+        "description": "Updated description"  # Optional
     }
 
     Returns:
         200: Organization updated successfully
+        401: Authentication required
         403: User is not authorized to update this organization
-        404: Organization or user not found
+        404: Organization not found
         400: Invalid request data
     """
     try:
@@ -154,14 +167,11 @@ def update_organization(org_id):
 
         data = request.get_json()
 
-        if 'requesting_user_id' not in data:
-            return jsonify({'error': 'Missing requesting_user_id'}), 400
-
-        # Check if user is owner or admin
+        # Check if authenticated user is owner or admin
         user_org_data = db.session.execute(
             select(UserOrganizationData).where(
                 and_(
-                    UserOrganizationData.user_id == data['requesting_user_id'],
+                    UserOrganizationData.user_id == current_user.id,
                     UserOrganizationData.organization_id == org_id
                 )
             )
@@ -186,21 +196,22 @@ def update_organization(org_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>', methods=['DELETE'])
-def delete_organization(org_id):
+@token_required
+def delete_organization(org_id, current_user):
     """
-    Delete an organization (owner only).
+    Delete an organization (owner only). Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization to delete
 
-    Query parameters:
-        - requesting_user_id: User ID of the person making this request
-
     Returns:
         204: Organization deleted successfully
+        401: Authentication required
         403: User is not the owner of this organization
         404: Organization not found
-        400: Missing requesting_user_id
     """
     try:
         organization = db.session.get(Organization, org_id)
@@ -208,15 +219,11 @@ def delete_organization(org_id):
         if not organization:
             return jsonify({'error': 'Organization not found'}), 404
 
-        requesting_user_id = request.args.get('requesting_user_id', type=int)
-        if not requesting_user_id:
-            return jsonify({'error': 'Missing requesting_user_id parameter'}), 400
-
-        # Check if user is owner
+        # Check if authenticated user is owner
         user_org_data = db.session.execute(
             select(UserOrganizationData).where(
                 and_(
-                    UserOrganizationData.user_id == requesting_user_id,
+                    UserOrganizationData.user_id == current_user.id,
                     UserOrganizationData.organization_id == org_id
                 )
             )
@@ -236,15 +243,20 @@ def delete_organization(org_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>/members', methods=['GET'])
-def get_organization_members(org_id):
+@token_required
+def get_organization_members(org_id, current_user):
     """
-    Get all members of an organization.
+    Get all members of an organization. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization
 
     Returns:
         200: List of members with their roles
+        401: Authentication required
         404: Organization not found
     """
     try:
@@ -272,9 +284,14 @@ def get_organization_members(org_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>/members', methods=['POST'])
-def add_organization_member(org_id):
+@token_required
+def add_organization_member(org_id, current_user):
     """
-    Add a member to an organization.
+    Add a member to an organization. Requires authentication.
+    Only owners and admins can add members.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization
@@ -282,14 +299,14 @@ def add_organization_member(org_id):
     Expected JSON body:
     {
         "user_id": 2,  # User to add
-        "requesting_user_id": 1,  # User making this request (must be owner/admin)
         "is_admin": false,  # Optional
         "is_driver": false  # Optional
     }
 
     Returns:
         200: Member added successfully
-        403: Requesting user is not authorized
+        401: Authentication required
+        403: User is not authorized to add members
         404: Organization or user not found
         409: User is already a member
         400: Invalid request data
@@ -303,14 +320,14 @@ def add_organization_member(org_id):
         data = request.get_json()
 
         # Validate required fields
-        if 'user_id' not in data or 'requesting_user_id' not in data:
-            return jsonify({'error': 'Missing required fields'}), 400
+        if 'user_id' not in data:
+            return jsonify({'error': 'Missing required field: user_id'}), 400
 
-        # Check if requesting user is owner or admin
+        # Check if authenticated user is owner or admin
         requesting_user_data = db.session.execute(
             select(UserOrganizationData).where(
                 and_(
-                    UserOrganizationData.user_id == data['requesting_user_id'],
+                    UserOrganizationData.user_id == current_user.id,
                     UserOrganizationData.organization_id == org_id
                 )
             )
@@ -357,22 +374,24 @@ def add_organization_member(org_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>/members/<int:user_id>', methods=['DELETE'])
-def remove_organization_member(org_id, user_id):
+@token_required
+def remove_organization_member(org_id, user_id, current_user):
     """
-    Remove a member from an organization (owner/admin only).
+    Remove a member from an organization (owner/admin only). Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization
         user_id: The ID of the user to remove
 
-    Query parameters:
-        - requesting_user_id: User ID of the person making this request
-
     Returns:
         204: Member removed successfully
-        403: User is not authorized
-        404: Organization, user, or membership not found
-        400: Cannot remove the owner or missing requesting_user_id
+        401: Authentication required
+        403: User is not authorized to remove members
+        404: Organization or membership not found
+        400: Cannot remove the owner
     """
     try:
         organization = db.session.get(Organization, org_id)
@@ -380,15 +399,11 @@ def remove_organization_member(org_id, user_id):
         if not organization:
             return jsonify({'error': 'Organization not found'}), 404
 
-        requesting_user_id = request.args.get('requesting_user_id', type=int)
-        if not requesting_user_id:
-            return jsonify({'error': 'Missing requesting_user_id parameter'}), 400
-
-        # Check if requesting user is owner or admin
+        # Check if authenticated user is owner or admin
         requesting_user_data = db.session.execute(
             select(UserOrganizationData).where(
                 and_(
-                    UserOrganizationData.user_id == requesting_user_id,
+                    UserOrganizationData.user_id == current_user.id,
                     UserOrganizationData.organization_id == org_id
                 )
             )
@@ -425,9 +440,13 @@ def remove_organization_member(org_id, user_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>/members/<int:user_id>/role', methods=['PUT'])
-def update_member_role(org_id, user_id):
+@token_required
+def update_member_role(org_id, user_id, current_user):
     """
-    Update a member's role in an organization (owner/admin only).
+    Update a member's role in an organization (owner/admin only). Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization
@@ -435,7 +454,6 @@ def update_member_role(org_id, user_id):
 
     Expected JSON body:
     {
-        "requesting_user_id": 1,  # User making this request
         "is_admin": true,  # Optional
         "is_driver": true  # Optional
     }
@@ -444,7 +462,8 @@ def update_member_role(org_id, user_id):
 
     Returns:
         200: Member role updated successfully
-        403: User is not authorized
+        401: Authentication required
+        403: User is not authorized to update member roles
         404: Organization or member not found
         400: Invalid request data or attempting to modify owner status
     """
@@ -456,14 +475,11 @@ def update_member_role(org_id, user_id):
 
         data = request.get_json()
 
-        if 'requesting_user_id' not in data:
-            return jsonify({'error': 'Missing requesting_user_id'}), 400
-
-        # Check if requesting user is owner or admin
+        # Check if authenticated user is owner or admin
         requesting_user_data = db.session.execute(
             select(UserOrganizationData).where(
                 and_(
-                    UserOrganizationData.user_id == data['requesting_user_id'],
+                    UserOrganizationData.user_id == current_user.id,
                     UserOrganizationData.organization_id == org_id
                 )
             )
@@ -509,15 +525,20 @@ def update_member_role(org_id, user_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>/drivers', methods=['GET'])
-def get_organization_drivers(org_id):
+@token_required
+def get_organization_drivers(org_id, current_user):
     """
-    Get all approved drivers in an organization.
+    Get all approved drivers in an organization. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization
 
     Returns:
         200: List of approved drivers in the organization
+        401: Authentication required
         404: Organization not found
     """
     try:
@@ -544,9 +565,13 @@ def get_organization_drivers(org_id):
 
 
 @organization_bp.route('/organizations/<int:org_id>/rides', methods=['GET'])
-def get_organization_rides(org_id):
+@token_required
+def get_organization_rides(org_id, current_user):
     """
-    Get all rides associated with an organization.
+    Get all rides associated with an organization. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         org_id: The ID of the organization
@@ -556,6 +581,7 @@ def get_organization_rides(org_id):
 
     Returns:
         200: List of rides for the organization
+        401: Authentication required
         404: Organization not found
     """
     try:

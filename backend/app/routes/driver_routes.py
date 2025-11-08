@@ -2,58 +2,58 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import select
 from app.extensions import db
 from app.models import DriverData, User
+from app.auth_utils import token_required, admin_required
 
 driver_bp = Blueprint('driver', __name__)
 
 
 @driver_bp.route('/drivers', methods=['POST'])
-def create_driver_data():
+@token_required
+def create_driver_data(current_user):
     """
-    Create driver data for a user (register as a driver).
+    Create driver data for a user (register as a driver). Requires authentication.
+    Users can only create driver data for themselves.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Expected JSON body:
     {
-        "user_id": 1,
         "license_image": "https://cloudinary.com/...",
         "vehicle_data": "2020 Honda Accord",
-        "license_plate": "ABC1234",
-        "is_approved": false  # Optional, defaults to False
+        "license_plate": "ABC1234"
     }
 
     Returns:
         201: Driver data created successfully
         400: Invalid request data or missing required fields
-        404: User not found
+        401: Not authenticated
+        403: Trying to create driver data for another user
         409: Driver data already exists for this user
     """
     try:
         data = request.get_json()
 
         # Validate required fields
-        required_fields = ['user_id', 'license_image', 'vehicle_data', 'license_plate']
+        required_fields = ['license_image', 'vehicle_data', 'license_plate']
         if not all(field in data for field in required_fields):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Check if user exists
-        user = db.session.get(User, data['user_id'])
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-
         # Check if driver data already exists for this user
         existing_driver = db.session.execute(
-            select(DriverData).where(DriverData.user_id == data['user_id'])
+            select(DriverData).where(DriverData.user_id == current_user.id)
         ).scalar_one_or_none()
 
         if existing_driver:
             return jsonify({'error': 'Driver data already exists for this user'}), 409
 
-        # Create new driver data
+        # Create new driver data (always starts as unapproved)
         driver_data = DriverData(
-            user_id=data['user_id'],
+            user_id=current_user.id,
             license_image=data['license_image'],
             vehicle_data=data['vehicle_data'],
             license_plate=data['license_plate'],
-            is_approved=data.get('is_approved', False)
+            is_approved=False
         )
 
         db.session.add(driver_data)
@@ -67,9 +67,13 @@ def create_driver_data():
 
 
 @driver_bp.route('/drivers', methods=['GET'])
-def get_all_drivers():
+@token_required
+def get_all_drivers(current_user):
     """
-    Get all drivers.
+    Get all drivers. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Query parameters:
         - approved: Filter by approval status (true/false) (optional)
@@ -78,6 +82,7 @@ def get_all_drivers():
 
     Returns:
         200: List of all drivers
+        401: Not authenticated
     """
     try:
         approved = request.args.get('approved', type=lambda v: v.lower() == 'true')
@@ -102,15 +107,20 @@ def get_all_drivers():
 
 
 @driver_bp.route('/drivers/<int:driver_id>', methods=['GET'])
-def get_driver(driver_id):
+@token_required
+def get_driver(current_user, driver_id):
     """
-    Get a specific driver by ID.
+    Get a specific driver by ID. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         driver_id: The ID of the driver data to retrieve
 
     Returns:
         200: Driver data
+        401: Not authenticated
         404: Driver not found
     """
     try:
@@ -126,9 +136,14 @@ def get_driver(driver_id):
 
 
 @driver_bp.route('/drivers/<int:driver_id>', methods=['PUT'])
-def update_driver(driver_id):
+@token_required
+def update_driver(current_user, driver_id):
     """
-    Update driver information.
+    Update driver information. Requires authentication.
+    Drivers can only update their own information unless they are system admins.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         driver_id: The ID of the driver data to update
@@ -144,6 +159,8 @@ def update_driver(driver_id):
 
     Returns:
         200: Driver data updated successfully
+        401: Not authenticated
+        403: Forbidden - trying to update another driver's data
         404: Driver not found
         400: Invalid request data
     """
@@ -152,6 +169,10 @@ def update_driver(driver_id):
 
         if not driver:
             return jsonify({'error': 'Driver not found'}), 404
+
+        # Check if user is updating their own driver data or is an admin
+        if driver.user_id != current_user.id and not current_user.is_system_admin:
+            return jsonify({'error': 'You can only update your own driver information'}), 403
 
         data = request.get_json()
 
@@ -173,18 +194,25 @@ def update_driver(driver_id):
 
 
 @driver_bp.route('/drivers/<int:driver_id>', methods=['DELETE'])
-def delete_driver(driver_id):
+@token_required
+def delete_driver(current_user, driver_id):
     """
-    Delete driver data.
+    Delete driver data. Requires authentication.
+    Drivers can only delete their own data unless they are system admins.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         driver_id: The ID of the driver data to delete
 
     Returns:
         204: Driver data deleted successfully
+        401: Not authenticated
+        403: Forbidden - trying to delete another driver's data
         404: Driver not found
         400: Cannot delete driver with active rides
-    
+
     Note: Deleting a driver will also delete all their reviews (cascade delete).
     """
     try:
@@ -192,6 +220,10 @@ def delete_driver(driver_id):
 
         if not driver:
             return jsonify({'error': 'Driver not found'}), 404
+
+        # Check if user is deleting their own driver data or is an admin
+        if driver.user_id != current_user.id and not current_user.is_system_admin:
+            return jsonify({'error': 'You can only delete your own driver information'}), 403
 
         # Check if driver has active rides
         if driver.hosted_rides:
@@ -211,38 +243,35 @@ def delete_driver(driver_id):
 
 
 @driver_bp.route('/drivers/<int:driver_id>/approve', methods=['POST'])
-def approve_driver(driver_id):
+@token_required
+@admin_required
+def approve_driver(current_user, driver_id):
     """
-    Approve or reject a driver (admin only endpoint).
+    Approve or reject a driver (admin only endpoint). Requires admin authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         driver_id: The ID of the driver data to approve/reject
 
     Expected JSON body:
     {
-        "approved": true,
-        "admin_user_id": 1  # ID of the system admin performing this action
+        "approved": true
     }
 
     Returns:
         200: Driver approval status updated successfully
+        401: Not authenticated
         403: User is not a system admin
-        404: Driver or admin user not found
+        404: Driver not found
         400: Invalid request data
     """
     try:
         data = request.get_json()
 
-        if 'approved' not in data or 'admin_user_id' not in data:
-            return jsonify({'error': 'Missing required fields'}), 400
-
-        # Check if admin user exists and is a system admin
-        admin_user = db.session.get(User, data['admin_user_id'])
-        if not admin_user:
-            return jsonify({'error': 'Admin user not found'}), 404
-
-        if not admin_user.is_system_admin:
-            return jsonify({'error': 'User is not authorized to approve drivers'}), 403
+        if 'approved' not in data:
+            return jsonify({'error': 'Missing required field: approved'}), 400
 
         # Get driver data
         driver = db.session.get(DriverData, driver_id)
@@ -264,9 +293,13 @@ def approve_driver(driver_id):
 
 
 @driver_bp.route('/drivers/<int:driver_id>/rides', methods=['GET'])
-def get_driver_rides(driver_id):
+@token_required
+def get_driver_rides(current_user, driver_id):
     """
-    Get all rides hosted by a specific driver.
+    Get all rides hosted by a specific driver. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Args:
         driver_id: The ID of the driver
@@ -276,6 +309,7 @@ def get_driver_rides(driver_id):
 
     Returns:
         200: List of rides hosted by the driver
+        401: Not authenticated
         404: Driver not found
     """
     try:
@@ -297,33 +331,21 @@ def get_driver_rides(driver_id):
 
 
 @driver_bp.route('/drivers/pending-approval', methods=['GET'])
-def get_pending_drivers():
+@token_required
+@admin_required
+def get_pending_drivers(current_user):
     """
-    Get all drivers pending approval (admin only endpoint).
+    Get all drivers pending approval (admin only endpoint). Requires admin authentication.
 
-    Query parameters:
-        - admin_user_id: ID of the system admin requesting this data
+    Headers:
+        Authorization: Bearer <JWT token>
 
     Returns:
         200: List of drivers pending approval
+        401: Not authenticated
         403: User is not a system admin
-        404: Admin user not found
-        400: Missing admin_user_id parameter
     """
     try:
-        admin_user_id = request.args.get('admin_user_id', type=int)
-
-        if not admin_user_id:
-            return jsonify({'error': 'Missing admin_user_id parameter'}), 400
-
-        # Check if admin user exists and is a system admin
-        admin_user = db.session.get(User, admin_user_id)
-        if not admin_user:
-            return jsonify({'error': 'Admin user not found'}), 404
-
-        if not admin_user.is_system_admin:
-            return jsonify({'error': 'User is not authorized to view pending drivers'}), 403
-
         # Get all pending drivers
         pending_drivers = db.session.execute(
             select(DriverData).where(DriverData.is_approved.is_(False))

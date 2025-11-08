@@ -5,13 +5,13 @@ const HostRideForm = () => {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-5xl font-bold mb-12">Host a Ride</h1>
+      <h1 className="text-5xl font-bold mb-12">Host a ZotRide</h1>
 
       <div className="text-lg">
         <input
           type="text"
           placeholder="Pickup Location"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -19,7 +19,7 @@ const HostRideForm = () => {
         <input
           type="text"
           placeholder="Dropoff Location"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -28,27 +28,27 @@ const HostRideForm = () => {
           <input
             type="text"
             placeholder="Time"
-            className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+            className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
           />
         </div>
         <div>
           <input
             type="text"
             placeholder="Day"
-            className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+            className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
           />
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative pb-4">
         <textarea
           placeholder="Comments"
           rows={5}
           maxLength={500}
           onChange={(e) => setCommentLength(e.target.value.length)}
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50 resize-none"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 focus:outline-none placeholder-black/50 resize-none rounded-t-lg"
         />
-        <div className="absolute bottom-3 right-0 text-xs text-black/50">
+        <div className="absolute bottom-0 right-0 text-xs text-black/50">
           {commentLength}/500
         </div>
       </div>

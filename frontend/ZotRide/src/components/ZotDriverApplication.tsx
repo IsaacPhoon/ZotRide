@@ -7,7 +7,7 @@ const ZotDriverApplication = () => {
         <input
           type="text"
           placeholder="Make"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -15,7 +15,7 @@ const ZotDriverApplication = () => {
         <input
           type="text"
           placeholder="Year"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -23,7 +23,7 @@ const ZotDriverApplication = () => {
         <input
           type="text"
           placeholder="Model"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -31,7 +31,7 @@ const ZotDriverApplication = () => {
         <input
           type="text"
           placeholder="License Plate"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -39,7 +39,7 @@ const ZotDriverApplication = () => {
         <input
           type="text"
           placeholder="Seats available"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 

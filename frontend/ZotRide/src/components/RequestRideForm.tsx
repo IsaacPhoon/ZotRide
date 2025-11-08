@@ -18,7 +18,7 @@ const RequestRideForm = () => {
       <div>
         <input
           type="text"
-          placeholder="Dropoff Location"
+          placeholder="Destination Location"
           className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>

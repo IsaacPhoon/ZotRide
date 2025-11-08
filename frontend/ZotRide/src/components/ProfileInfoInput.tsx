@@ -5,7 +5,7 @@ interface ProfileInfoInputProps {
 
 const ProfileInfoInput = ({ label, value }: ProfileInfoInputProps) => (
   <div className="flex items-baseline gap-4">
-    <span className="font-bold text-black text-right text-lg min-w-[140px]">{label}:</span>
+    <span className="font-bold text-black text-right text-lg w-[180px]">{label}:</span>
     <input
       type="text"
       placeholder={value}

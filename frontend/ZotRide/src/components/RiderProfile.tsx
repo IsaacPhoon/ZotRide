@@ -4,7 +4,7 @@ const RiderProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
     username: "ZotRider",
-    email: "Email",
+    contact: "Email",
     preferredName: "Preferred Name",
     gender: "Gender",
     dateCreated: "xx/xx/xx",
@@ -78,20 +78,20 @@ const RiderProfile = () => {
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <label className="font-bold min-w-[140px] text-right">
-                    Email:
+                    Prefered Contact:
                   </label>
                   {isEditing ? (
                     <input
                       type="text"
-                      value={profileData.email}
+                      value={profileData.contact}
                       onChange={(e) =>
-                        handleInputChange("email", e.target.value)
+                        handleInputChange("contact", e.target.value)
                       }
                       className="flex-1 bg-transparent border-b-2 border-black focus:outline-none pb-1"
                     />
                   ) : (
                     <span className="flex-1 border-b-2 border-black pb-1">
-                      {profileData.email}
+                      {profileData.contact}
                     </span>
                   )}
                 </div>

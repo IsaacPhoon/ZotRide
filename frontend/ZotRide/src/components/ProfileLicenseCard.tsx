@@ -6,7 +6,7 @@ import ProfileInfoInput from "./ProfileInfoInput";
 interface ProfileLicenseCardProps {
   userName?: string;
   userTitle?: string;
-  email?: string;
+  contact?: string;
   preferredName?: string;
   gender?: string;
   dateCreated?: string;
@@ -52,7 +52,7 @@ const ZotBadge = ({
 const ProfileLicenseCard = ({
   userName = "User Name",
   userTitle = "ZotRider",
-  email = "Email",
+  contact = "Prefered Contact",
   preferredName = "Preferred Name",
   gender = "Gender",
   dateCreated = "xx/xx/xx",
@@ -90,13 +90,13 @@ const ProfileLicenseCard = ({
           <div className="space-y-4 flex flex-col justify-center">
             {displayed ? (
               <>
-                <ProfileInfo label="Email" value={email} />
+                <ProfileInfo label="Prefered Contact" value={contact} />
                 <ProfileInfo label="Preferred Name" value={preferredName} />
                 <ProfileInfo label="Gender" value={gender} />
               </>
             ) : (
               <>
-                <ProfileInfoInput label="Email" value={email} />
+                <ProfileInfoInput label="Prefered Contact" value={contact} />
                 <ProfileInfoInput label="Preferred Name" value={preferredName} />
                 <ProfileInfoInput label="Gender" value={gender} />
               </>

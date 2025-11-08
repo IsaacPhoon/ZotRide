@@ -20,14 +20,14 @@ class Ride(db.Model):
     status: Mapped[str] = mapped_column(String(20), default='active', nullable=False)
     # Possible values: 'active', 'completed'
 
-    driver_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('driver_data.id'), nullable=True, ondelete='RESTRICT')
+    driver_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('driver_data.id'), nullable=True)
     driver: Mapped[Optional['DriverData']] = relationship('DriverData', back_populates='hosted_rides')
     driver_comment: Mapped[Optional[str]] = mapped_column(String(500), default=None, nullable=True)
 
     riders: Mapped[list['UserRideData']] = relationship('UserRideData', back_populates='ride', cascade='all, delete-orphan')
 
     organization_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey('organizations.id'), nullable=True)
-    organization: Mapped[Optional[Organization]] = relationship('Organization', back_populates='organization_rides')
+    organization: Mapped[Optional['Organization']] = relationship('Organization', back_populates='organization_rides')
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

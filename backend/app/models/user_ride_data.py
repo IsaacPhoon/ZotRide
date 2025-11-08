@@ -12,9 +12,9 @@ class UserRideData(db.Model):
     __table_args__ = (UniqueConstraint('user_id', 'ride_id'),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user: Mapped[User] = relationship('User', back_populates='taken_rides')
+    user: Mapped['User'] = relationship('User', back_populates='taken_rides')
     user_id: Mapped[int] = mapped_column('user_id', ForeignKey('users.id'), nullable=False, index=True)
-    ride: Mapped[Ride] = relationship('Ride', back_populates='riders')
+    ride: Mapped['Ride'] = relationship('Ride', back_populates='riders')
     ride_id: Mapped[int] = mapped_column('ride_id', ForeignKey('rides.id'), nullable=False, index=True)
     user_comment: Mapped[Optional[str]] = mapped_column(String(500), default=None, nullable=True)
     joined_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

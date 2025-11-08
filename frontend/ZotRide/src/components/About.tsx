@@ -9,7 +9,7 @@ const About: React.FC = () => {
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-[2rem]">
       <div className="text-center max-w-4xl">
-        <h1 className="text-7xl md:text-8xl font-bold text-gray-900 mb-4">
+        <h1 className="text-7xl md:text-8xl font-bold text-black mb-4">
           This is
           <br />
           ZotRide
@@ -19,7 +19,7 @@ const About: React.FC = () => {
           Less is more. Think minimally.
         </p>
 
-        <button className="border-2 border-gray-900 text-gray-900 px-8 py-3 rounded-full text-sm font-medium hover:bg-gray-900 hover:text-white transition-colors mb-8">
+        <button className="border-2 border-black text-black px-8 py-3 rounded-full text-sm font-medium hover:bg-black hover:text-white transition-colors mb-8">
           UCI Sign In
         </button>
 
@@ -27,11 +27,11 @@ const About: React.FC = () => {
           onClick={scrollToAboutGrid}
           className="flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none hover:opacity-70 transition-opacity mx-auto"
         >
-          <p className="text-gray-900 text-sm font-medium tracking-wider">
+          <p className="text-black text-sm font-medium tracking-wider">
             LEARN MORE
           </p>
           <svg
-            className="w-6 h-6 text-gray-900"
+            className="w-6 h-6 text-black"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

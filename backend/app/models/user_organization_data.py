@@ -8,12 +8,12 @@ if TYPE_CHECKING:
 
 class UserOrganizationData(db.Model):
     __tablename__ = 'user_organization_data'
-    __table_args__ = (UniqueConstraint('user_id', 'organization_id'))
+    __table_args__ = (UniqueConstraint('user_id', 'organization_id'),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user: Mapped[User] = relationship('User', back_populates='organizations')
+    user: Mapped['User'] = relationship('User', back_populates='organizations')
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=False, index=True)
-    organization: Mapped[Organization] = relationship('Organization', back_populates='members')
+    organization: Mapped['Organization'] = relationship('Organization', back_populates='members')
     organization_id: Mapped[int] = mapped_column(Integer, ForeignKey('organizations.id'), nullable=False, index=True)
     is_owner: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

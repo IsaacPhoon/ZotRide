@@ -17,9 +17,9 @@ class User(db.Model):
     # 0: Male, 1: Female, 2: Other
     gender: Mapped[int] = mapped_column(Integer, nullable=False)
     preferred_contact: Mapped[str] = mapped_column(String(100), nullable=False)
-    driver_data: Mapped[Optional[DriverData]] =  relationship('DriverData', back_populates='user', cascade='all, delete-orphan')
-    taken_rides: Mapped[list[UserRideData]] = relationship('UserRideData', back_populates='user', cascade='all, delete-orphan')
-    organizations: Mapped[list[UserOrganizationData]] = relationship('UserOrganizationData', back_populates='user', cascade='all, delete-orphan')
+    driver_data: Mapped[Optional['DriverData']] =  relationship('DriverData', back_populates='user', cascade='all, delete-orphan')
+    taken_rides: Mapped[list['UserRideData']] = relationship('UserRideData', back_populates='user', cascade='all, delete-orphan')
+    organizations: Mapped[list['UserOrganizationData']] = relationship('UserOrganizationData', back_populates='user', cascade='all, delete-orphan')
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(

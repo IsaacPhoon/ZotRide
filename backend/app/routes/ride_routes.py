@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select, and_
 from datetime import datetime, timezone
 from app.extensions import db
 from app.models import Ride, DriverData, User, UserRideData, Organization
@@ -172,7 +172,7 @@ def update_ride(ride_id):
     Returns:
         200: Ride updated successfully
         404: Ride not found
-        403: Driver is not approved
+        403: Driver is not approved or ride is completed
         400: Invalid request data
     """
     try:
@@ -183,31 +183,41 @@ def update_ride(ride_id):
 
         data = request.get_json()
 
-        # Update allowed fields
-        if 'pickup_address' in data:
-            ride.pickup_address = data['pickup_address']
-        if 'pickup_time' in data:
-            ride.pickup_time = datetime.fromisoformat(data['pickup_time'].replace('Z', '+00:00'))
-        if 'destination_address' in data:
-            ride.destination_address = data['destination_address']
-        if 'max_riders' in data:
-            ride.max_riders = data['max_riders']
-        if 'price_option' in data:
-            ride.price_option = data['price_option']
-        if 'status' in data:
-            ride.status = data['status']
-        if 'driver_comment' in data:
-            ride.driver_comment = data['driver_comment']
+        # Prevent updating most fields if ride is completed
+        if ride.status == 'completed':
+            # Only allow updating driver_comment for completed rides
+            if any(key in data for key in ['pickup_address', 'pickup_time', 'destination_address', 
+                                            'max_riders', 'price_option', 'driver_id']):
+                return jsonify({'error': 'Cannot update ride details after completion. Only driver_comment can be updated.'}), 403
+            
+            if 'driver_comment' in data:
+                ride.driver_comment = data['driver_comment']
+        else:
+            # Update allowed fields for active rides
+            if 'pickup_address' in data:
+                ride.pickup_address = data['pickup_address']
+            if 'pickup_time' in data:
+                ride.pickup_time = datetime.fromisoformat(data['pickup_time'].replace('Z', '+00:00'))
+            if 'destination_address' in data:
+                ride.destination_address = data['destination_address']
+            if 'max_riders' in data:
+                ride.max_riders = data['max_riders']
+            if 'price_option' in data:
+                ride.price_option = data['price_option']
+            if 'status' in data:
+                ride.status = data['status']
+            if 'driver_comment' in data:
+                ride.driver_comment = data['driver_comment']
 
-        # If updating driver_id, validate driver exists and is approved
-        if 'driver_id' in data:
-            if data['driver_id']:
-                driver = db.session.get(DriverData, data['driver_id'])
-                if not driver:
-                    return jsonify({'error': 'Driver not found'}), 404
-                if not driver.is_approved:
-                    return jsonify({'error': 'Driver is not approved'}), 403
-            ride.driver_id = data['driver_id']
+            # If updating driver_id, validate driver exists and is approved
+            if 'driver_id' in data:
+                if data['driver_id']:
+                    driver = db.session.get(DriverData, data['driver_id'])
+                    if not driver:
+                        return jsonify({'error': 'Driver not found'}), 404
+                    if not driver.is_approved:
+                        return jsonify({'error': 'Driver is not approved'}), 403
+                ride.driver_id = data['driver_id']
 
         db.session.commit()
 
@@ -229,6 +239,8 @@ def delete_ride(ride_id):
     Returns:
         204: Ride deleted successfully
         404: Ride not found
+    
+    Note: Deleting a ride will also delete all associated reviews and rider associations.
     """
     try:
         ride = db.session.get(Ride, ride_id)
@@ -240,6 +252,62 @@ def delete_ride(ride_id):
         db.session.commit()
 
         return '', 204
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+
+@ride_bp.route('/rides/<int:ride_id>/complete', methods=['POST'])
+def complete_ride(ride_id):
+    """
+    Mark a ride as completed. This enables riders to review the driver.
+
+    Args:
+        ride_id: The ID of the ride to complete
+
+    Expected JSON body:
+    {
+        "driver_id": 1  # To verify the correct driver is completing the ride
+    }
+
+    Returns:
+        200: Ride marked as completed
+        404: Ride not found
+        403: Unauthorized - driver mismatch or ride already completed
+        400: Invalid request data or ride has no driver
+    """
+    try:
+        ride = db.session.get(Ride, ride_id)
+
+        if not ride:
+            return jsonify({'error': 'Ride not found'}), 404
+
+        data = request.get_json()
+
+        if 'driver_id' not in data:
+            return jsonify({'error': 'Missing driver_id'}), 400
+
+        # Verify ride has a driver
+        if not ride.driver_id:
+            return jsonify({'error': 'Cannot complete a ride without a driver'}), 400
+
+        # Verify the driver completing the ride is the assigned driver
+        if ride.driver_id != data['driver_id']:
+            return jsonify({'error': 'Only the assigned driver can complete this ride'}), 403
+
+        # Check if already completed
+        if ride.status == 'completed':
+            return jsonify({'error': 'Ride is already completed'}), 403
+
+        # Mark ride as completed
+        ride.status = 'completed'
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Ride completed successfully. Riders can now leave reviews.',
+            'ride': ride.to_dict()
+        }), 200
 
     except Exception as e:
         db.session.rollback()
@@ -287,6 +355,12 @@ def join_ride(ride_id):
         # Check if ride is full
         if ride.is_full:
             return jsonify({'error': 'Ride is full'}), 400
+
+        # Check if user is the driver (prevent driver from joining their own ride)
+        if ride.driver_id:
+            driver = db.session.get(DriverData, ride.driver_id)
+            if driver and driver.user_id == data['user_id']:
+                return jsonify({'error': 'Driver cannot join their own ride as a rider'}), 400
 
         # Check if user already joined this ride
         existing = db.session.execute(

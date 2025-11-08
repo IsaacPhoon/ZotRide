@@ -51,7 +51,8 @@ class DriverData(db.Model):
             'approved_at': self.approved_at.isoformat() if self.approved_at else None,
             'user_id': self.user_id,
             'hosted_rides': [ride.id for ride in self.hosted_rides],
-            'average_rating': self.average_rating
+            'average_rating': self.average_rating,
+            'total_reviews': len(self.reviews)
         }
 
     def __repr__(self) -> str:

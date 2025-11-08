@@ -75,10 +75,14 @@ class Ride(db.Model):
             'destination_address': self.destination_address,
             'max_riders': self.max_riders,
             'price_option': self.price_option,
+            'status': self.status,
             'driver_id': self.driver_id if self.driver_id else None,
             'driver_comment': self.driver_comment,
+            'organization_id': self.organization_id,
             'riders': [{'user_id': rider.user_id, 'comment': rider.user_comment, 'joined_at': rider.joined_at.isoformat()} for rider in self.riders],
-            'rider_comments': [rider.user_comment for rider in self.riders]
+            'rider_comments': [rider.user_comment for rider in self.riders],
+            'available_seats': self.available_seats,
+            'total_reviews': len(self.reviews)
         }
 
     def __repr__(self) -> str:

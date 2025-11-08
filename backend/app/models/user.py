@@ -1,19 +1,11 @@
 from datetime import datetime, timezone
-from typing import Optional
-from sqlalchemy import DateTime, String, Boolean, Integer, Column, Table, ForeignKey
+from sqlalchemy import DateTime, String, Boolean, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from app.models import Ride, DriverData, UserOrganizationData
-
-user_ride_association = Table(
-    'user_ride_association',
-    db.Model.metadata,
-    Column('user_id', ForeignKey('users.id'), primary_key=True),
-    Column('ride_id', ForeignKey('rides.id'), primary_key=True),
-)
+    from app.models import DriverData, UserOrganizationData, UserRideData
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -26,7 +18,7 @@ class User(db.Model):
     gender: Mapped[int] = mapped_column(Integer, nullable=False)
     preferred_contact: Mapped[str] = mapped_column(String(100), nullable=False)
     driver_data: Mapped[Optional[DriverData]] =  relationship('DriverData', back_populates='user', cascade='all, delete-orphan')
-    taken_rides: Mapped[list[Ride]] = relationship(secondary=user_ride_association, back_populates='riders')
+    taken_rides: Mapped[list[UserRideData]] = relationship('UserRideData', back_populates='user', cascade='all, delete-orphan')
     organizations: Mapped[list[UserOrganizationData]] = relationship('UserOrganizationData', back_populates='user', cascade='all, delete-orphan')
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

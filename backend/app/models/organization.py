@@ -1,9 +1,8 @@
 from datetime import datetime, timezone
-from typing import Optional
 from sqlalchemy import DateTime, String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from app.models import UserOrganizationData, Ride

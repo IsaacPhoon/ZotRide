@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from sqlalchemy import DateTime, String, Boolean, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from app.models import User, Ride
@@ -15,7 +15,7 @@ class DriverData(db.Model):
     vehicle_data: Mapped[str] = mapped_column(String(255), nullable=False)
     license_plate: Mapped[str] = mapped_column(String(10), unique=True, nullable=False)
     is_approved: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    approved_at: Mapped[datetime] = mapped_column(DateTime, default=None, nullable=False)
+    approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime, default=None, nullable=True)
 
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), nullable=False, unique=True)
     user: Mapped['User'] = relationship('User', back_populates='driver_data')

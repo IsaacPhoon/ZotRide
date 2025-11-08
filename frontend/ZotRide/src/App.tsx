@@ -1,12 +1,35 @@
-import React from 'react'
-import Navbar from './components/Navbar'
+import React, { useState } from "react";
+import Navbar from "./components/Navbar";
+import Home from "./components/Home";
+import Profile from "./components/Profile";
+import AboutPage from "./components/AboutPage";
 
-const App = () => {
+const App: React.FC = () => {
+  const [activePage, setActivePage] = useState<"HOME" | "ABOUT" | "PROFILE">("HOME");
+
+  const renderPage = () => {
+    switch (activePage) {
+      case "HOME":
+        return <Home />;
+      case "ABOUT":
+        return (
+          <>
+            <AboutPage />
+          </>
+        );
+      case "PROFILE":
+        return <Profile />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="bg-white min-h-screen">
-      <Navbar />
+    <div className="flex flex-col bg-white min-h-screen w-full no-scrollbar">
+      <Navbar activeItem={activePage} setActiveItem={setActivePage} />
+      {renderPage()}
     </div>
-  )
-}
+  );
+};
 
-export default App
+export default App;

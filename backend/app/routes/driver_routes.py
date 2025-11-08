@@ -184,6 +184,8 @@ def delete_driver(driver_id):
         204: Driver data deleted successfully
         404: Driver not found
         400: Cannot delete driver with active rides
+    
+    Note: Deleting a driver will also delete all their reviews (cascade delete).
     """
     try:
         driver = db.session.get(DriverData, driver_id)
@@ -197,6 +199,7 @@ def delete_driver(driver_id):
                 'error': 'Cannot delete driver with existing rides. Please delete all rides first.'
             }), 400
 
+        # Reviews will be cascade deleted automatically
         db.session.delete(driver)
         db.session.commit()
 
@@ -323,7 +326,7 @@ def get_pending_drivers():
 
         # Get all pending drivers
         pending_drivers = db.session.execute(
-            select(DriverData).where(DriverData.is_approved == False)
+            select(DriverData).where(DriverData.is_approved.is_(False))
         ).scalars().all()
 
         return jsonify([driver.to_dict() for driver in pending_drivers]), 200

@@ -3,6 +3,7 @@ from app.routes.user_routes import user_bp
 from app.routes.driver_routes import driver_bp
 from app.routes.ride_routes import ride_bp
 from app.routes.organization_routes import organization_bp
+from app.routes.review_routes import review_bp
 
 def register_blueprints(app):
     """
@@ -16,3 +17,4 @@ def register_blueprints(app):
     app.register_blueprint(driver_bp, url_prefix='/api')
     app.register_blueprint(ride_bp, url_prefix='/api')
     app.register_blueprint(organization_bp, url_prefix='/api')
+    app.register_blueprint(review_bp, url_prefix='/api')

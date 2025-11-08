@@ -52,6 +52,7 @@ class Review(db.Model):
             'id': self.id,
             'driver_id': self.driver_id,
             'author_id': self.author_id,
+            'author_name': self.author.name,
             'ride_id': self.ride_id,
             'stars': self.stars,
             'comment': self.comment,

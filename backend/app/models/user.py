@@ -44,7 +44,10 @@ class User(db.Model):
             'email': self.email,
             'name': self.name,
             'gender': self.gender,
-            'preferred_contact': self.preferred_contact
+            'preferred_contact': self.preferred_contact,
+            'is_driver': self.driver_data is not None,
+            'driver_id': self.driver_data.id if self.driver_data else None,
+            'total_reviews_authored': len(self.ratings_authored)
         }
 
     def __repr__(self) -> str:

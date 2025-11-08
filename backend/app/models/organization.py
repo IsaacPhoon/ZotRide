@@ -1,5 +1,6 @@
+from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy import String, Integer
+from sqlalchemy import DateTime, String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db
 from typing import TYPE_CHECKING
@@ -8,13 +9,21 @@ if TYPE_CHECKING:
     from app.models import UserOrganizationData, Ride
 
 class Organization(db.Model):
-    table_name = 'organizations'
+    __tablename__ = 'organizations'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    members: Mapped[list[UserOrganizationData]] = relationship('UserOrganizationData', back_populates='organization', index=True)
+    members: Mapped[list[UserOrganizationData]] = relationship('UserOrganizationData', back_populates='organization')
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
-    organization_rides: Mapped[list[Ride]] = relationship('Ride', pack_populates='organization')
+    organization_rides: Mapped[list[Ride]] = relationship('Ride', back_populates='organization')
+    
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, 
+        default=lambda: datetime.now(timezone.utc), 
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False
+    )
 
     def __init__(self, name: str, description: Optional[str] = None):
         self.name = name
@@ -24,7 +33,7 @@ class Organization(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'description': self.description,
+            'description': self.description if self.description else None,
             'organization_rides': [ride.id for ride in self.organization_rides]
         }
 

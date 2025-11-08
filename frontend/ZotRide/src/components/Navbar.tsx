@@ -1,77 +1,29 @@
-import React from "react";
+import { useState } from "react";
+import NavbarItem from "./NavbarItem";
 
 const Navbar = () => {
+  const [activeItem, setActiveItem] = useState<'HOME' | 'ABOUT' | 'PROFILE'>('HOME');
+
   return (
-    <div className="navbar shadow-sm w-19/20 rounded-full">
-      <div className="navbar-start">
-        <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {" "}
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h8m-8 6h16"
-              />{" "}
-            </svg>
+    <div className="navbar border border-black w-19/20 h-20 rounded-full justify-center mt-4">
+      <div className="navbar-start px-4 text-black">
+        <div></div>
+      </div>
+      <div className="navbar-center hidden lg:flex text-black">
+        <div className="flex gap-6">
+          <div onClick={() => setActiveItem('HOME')} className="cursor-pointer">
+            <NavbarItem text="HOME" active={activeItem === 'HOME'} />
           </div>
-          <ul
-            tabIndex={-1}
-            className="menu menu-sm dropdown-content rounded-box z-1 mt-3 w-52 p-2 shadow"
-          >
-            <li>
-              <a>Item 1</a>
-            </li>
-            <li>
-              <a>Parent</a>
-              <ul className="p-2">
-                <li>
-                  <a>Submenu 1</a>
-                </li>
-                <li>
-                  <a>Submenu 2</a>
-                </li>
-              </ul>
-            </li>
-            <li>
-              <a>Item 3</a>
-            </li>
-          </ul>
+          <div onClick={() => setActiveItem('ABOUT')} className="cursor-pointer">
+            <NavbarItem text="ABOUT" active={activeItem === 'ABOUT'} />
+          </div>
+          <div onClick={() => setActiveItem('PROFILE')} className="cursor-pointer">
+            <NavbarItem text="PROFILE" active={activeItem === 'PROFILE'} />
+          </div>
         </div>
-        <a className="btn btn-ghost text-xl">daisyUI</a>
       </div>
-      <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1">
-          <li>
-            <a>Item 1</a>
-          </li>
-          <li>
-            <details>
-              <summary>Parent</summary>
-              <ul className="p-2">
-                <li>
-                  <a>Submenu 1</a>
-                </li>
-                <li>
-                  <a>Submenu 2</a>
-                </li>
-              </ul>
-            </details>
-          </li>
-          <li>
-            <a>Item 3</a>
-          </li>
-        </ul>
-      </div>
-      <div className="navbar-end">
-        <a className="btn">Button</a>
+      <div className="navbar-end px-4">
+        <div></div>
       </div>
     </div>
   );

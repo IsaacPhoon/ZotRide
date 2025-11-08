@@ -3,9 +3,12 @@ import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
 import AboutPage from "./components/AboutPage";
+import DriverPage from "./components/DriverPage";
 
 const App: React.FC = () => {
-  const [activePage, setActivePage] = useState<"HOME" | "ABOUT" | "PROFILE">("HOME");
+  const [activePage, setActivePage] = useState<
+    "HOME" | "ABOUT" | "DRIVER" | "PROFILE"
+  >("HOME");
 
   const renderPage = () => {
     switch (activePage) {
@@ -17,6 +20,8 @@ const App: React.FC = () => {
             <AboutPage />
           </>
         );
+      case "DRIVER":
+        return <DriverPage />;
       case "PROFILE":
         return <Profile />;
       default:

@@ -7,7 +7,7 @@ const About: React.FC = () => {
   };
 
   return (
-    <section className="min-h-screen flex flex-col items-center justify-center px-4">
+    <section className="min-h-screen flex flex-col items-center justify-center px-[2rem]">
       <div className="text-center max-w-4xl">
         <h1 className="text-7xl md:text-8xl font-bold text-gray-900 mb-4">
           This is

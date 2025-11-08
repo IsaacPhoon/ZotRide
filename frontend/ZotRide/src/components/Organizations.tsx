@@ -2,7 +2,7 @@ import CreateOrganization from "./CreateOrganization";
 
 const Organizations = () => {
   return (
-    <div>
+    <div className="bg-white px-[2rem]">
       <CreateOrganization />
     </div>
   );

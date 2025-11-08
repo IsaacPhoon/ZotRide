@@ -6,13 +6,13 @@ const CreateOrganization = () => {
   const [descriptionLength, setDescriptionLength] = useState(0);
 
   return (
-    <div className="min-h-screen bg-white text-black px-[2rem] py-[4rem]">
+    <div className="min-h-screen bg-white text-black py-[4rem] px-[2rem] lg:px-[2rem]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[8rem] items-center">
         {/* Form Section */}
         <div className="space-y-10">
           <div>
-            <h1 className="text-6xl font-bold mb-4">Create an</h1>
-            <h1 className="text-6xl font-bold mb-12">Organization</h1>
+            <h1 className="text-5xl font-bold mb-4">Create an</h1>
+            <h1 className="text-5xl font-bold mb-12">Organization</h1>
           </div>
 
           {/* Organization Name */}

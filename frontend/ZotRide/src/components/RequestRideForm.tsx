@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState } from "react";
 
 const RequestRideForm = () => {
-  const [commentLength, setCommentLength] = useState(0)
+  const [commentLength, setCommentLength] = useState(0);
 
   return (
     <div className="space-y-[2rem]">
@@ -40,15 +40,15 @@ const RequestRideForm = () => {
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative pb-4">
         <textarea
           placeholder="Comments"
           rows={5}
           maxLength={500}
           onChange={(e) => setCommentLength(e.target.value.length)}
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50 resize-none"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 focus:outline-none placeholder-black/50 resize-none rounded-t-lg"
         />
-        <div className="absolute bottom-3 right-0 text-xs text-black/50">
+        <div className="absolute bottom-0 right-0 text-xs text-black/50">
           {commentLength}/500
         </div>
       </div>
@@ -59,7 +59,7 @@ const RequestRideForm = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RequestRideForm
+export default RequestRideForm;

@@ -3,7 +3,7 @@ import testImage from "../assets/testimage.png";
 
 const AboutGrid: React.FC = () => {
   return (
-    <section className="min-h-screen bg-white pb-20 px-4">
+    <section id="about-grid" className="min-h-screen bg-white pb-20 px-4">
       <div className="max-w-7xl mx-auto space-y-32">
         {/* First Hero Section - Image on Left, Content on Right */}
         <div className="hero">

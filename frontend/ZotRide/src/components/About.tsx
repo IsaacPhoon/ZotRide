@@ -1,6 +1,11 @@
 import React from "react";
 
 const About: React.FC = () => {
+  const scrollToAboutGrid = () => {
+    const element = document.getElementById("about-grid");
+    element?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-4xl">
@@ -14,11 +19,14 @@ const About: React.FC = () => {
           Less is more. Think minimally.
         </p>
 
-        <button className="border-2 border-gray-900 text-gray-900 px-8 py-3 rounded-full text-sm font-medium hover:bg-gray-900 hover:text-white transition-colors mb-12">
+        <button className="border-2 border-gray-900 text-gray-900 px-8 py-3 rounded-full text-sm font-medium hover:bg-gray-900 hover:text-white transition-colors mb-8">
           UCI Sign In
         </button>
 
-        <div className="flex flex-col items-center gap-2">
+        <button
+          onClick={scrollToAboutGrid}
+          className="flex flex-col items-center gap-2 cursor-pointer bg-transparent border-none hover:opacity-70 transition-opacity mx-auto"
+        >
           <p className="text-gray-900 text-sm font-medium tracking-wider">
             LEARN MORE
           </p>
@@ -35,7 +43,7 @@ const About: React.FC = () => {
               d="M19 14l-7 7m0 0l-7-7m7 7V3"
             />
           </svg>
-        </div>
+        </button>
       </div>
     </section>
   );

@@ -1,9 +1,11 @@
 import CreateOrganization from "./CreateOrganization";
+import JoinOrganization from "./JoinOrganization";
 
 const Organizations = () => {
   return (
-    <div className="bg-white px-[2rem]">
+    <div className="bg-white">
       <CreateOrganization />
+      <JoinOrganization />
     </div>
   );
 };

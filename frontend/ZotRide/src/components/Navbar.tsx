@@ -15,16 +15,16 @@ const Navbar = () => {
         <div className="navbar-center hidden lg:flex text-black">
           <div className="flex gap-6">
             <div
-              onClick={() => setActiveItem("HOME")}
-              className="cursor-pointer"
-            >
-              <NavbarItem text="HOME" active={activeItem === "HOME"} />
-            </div>
-            <div
               onClick={() => setActiveItem("ABOUT")}
               className="cursor-pointer"
             >
               <NavbarItem text="ABOUT" active={activeItem === "ABOUT"} />
+            </div>
+            <div
+              onClick={() => setActiveItem("HOME")}
+              className="cursor-pointer"
+            >
+              <NavbarItem text="HOME" active={activeItem === "HOME"} />
             </div>
             <div
               onClick={() => setActiveItem("PROFILE")}

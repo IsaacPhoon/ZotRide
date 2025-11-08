@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import Navbar from "./components/Navbar";
-import Introduction from "./components/Introduction";
-import IntroductionGrid from "./components/IntroductionGrid";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
+import AboutPage from "./components/AboutPage";
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<"HOME" | "ABOUT" | "PROFILE">("HOME");
@@ -15,8 +14,7 @@ const App: React.FC = () => {
       case "ABOUT":
         return (
           <>
-            <Introduction />
-            <IntroductionGrid />
+            <AboutPage />
           </>
         );
       case "PROFILE":

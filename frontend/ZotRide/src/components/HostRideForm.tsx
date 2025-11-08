@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState } from "react";
 
-const RequestRideForm = () => {
-  const [commentLength, setCommentLength] = useState(0)
+const HostRideForm = () => {
+  const [commentLength, setCommentLength] = useState(0);
 
   return (
     <div className="space-y-8">
-      <h1 className="text-5xl font-bold mb-12">Request a ZotRide</h1>
+      <h1 className="text-5xl font-bold mb-12">Host a ZotRide</h1>
 
       <div className="text-lg">
         <input
@@ -55,11 +55,11 @@ const RequestRideForm = () => {
 
       <div className="grid grid-cols-2 gap-8">
         <div className="flex rounded-full h-[3rem] border border-black items-center justify-center cursor-pointer hover:bg-black hover:text-white transition px-8">
-          Request
+          Host
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RequestRideForm
+export default HostRideForm;

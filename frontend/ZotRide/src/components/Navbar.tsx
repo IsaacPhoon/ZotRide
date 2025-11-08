@@ -1,8 +1,8 @@
 import NavbarItem from "./NavbarItem";
 
 interface NavbarProps {
-  activeItem: "HOME" | "ABOUT" | "PROFILE";
-  setActiveItem: (item: "HOME" | "ABOUT" | "PROFILE") => void;
+  activeItem: "HOME" | "ABOUT" | "DRIVER" | "PROFILE";
+  setActiveItem: (item: "HOME" | "ABOUT" | "DRIVER" | "PROFILE") => void;
 }
 
 const Navbar = ({ activeItem, setActiveItem }: NavbarProps) => {
@@ -25,6 +25,12 @@ const Navbar = ({ activeItem, setActiveItem }: NavbarProps) => {
               className="cursor-pointer"
             >
               <NavbarItem text="HOME" active={activeItem === "HOME"} />
+            </div>
+            <div
+              onClick={() => setActiveItem("DRIVER")}
+              className="cursor-pointer"
+            >
+              <NavbarItem text="DRIVER" active={activeItem === "DRIVER"} />
             </div>
             <div
               onClick={() => setActiveItem("PROFILE")}

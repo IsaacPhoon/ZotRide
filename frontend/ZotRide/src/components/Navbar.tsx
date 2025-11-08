@@ -1,11 +1,11 @@
-import { useState } from "react";
 import NavbarItem from "./NavbarItem";
 
-const Navbar = () => {
-  const [activeItem, setActiveItem] = useState<"HOME" | "ABOUT" | "PROFILE">(
-    "HOME"
-  );
+interface NavbarProps {
+  activeItem: "HOME" | "ABOUT" | "PROFILE";
+  setActiveItem: (item: "HOME" | "ABOUT" | "PROFILE") => void;
+}
 
+const Navbar = ({ activeItem, setActiveItem }: NavbarProps) => {
   return (
     <div className="flex justify-center w-full">
       <div className="navbar border border-black w-19/20 h-20 rounded-full justify-center mt-4">

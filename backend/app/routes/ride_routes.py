@@ -122,6 +122,9 @@ def get_rides(current_user):
                 query = query.where(Ride.driver_id.is_(None))
         if organization_id:
             query = query.where(Ride.organization_id == organization_id)
+        else:
+            # Exclude organization rides if no organization_id filter is provided
+            query = query.where(Ride.organization_id.is_(None))
 
         # Apply pagination
         query = query.offset(offset)

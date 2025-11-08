@@ -5,7 +5,7 @@ const HostRideForm = () => {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-5xl font-bold mb-12">Host a ZotRide</h1>
+      <h1 className="text-5xl font-bold mb-12">Host a Ride</h1>
 
       <div className="text-lg">
         <input

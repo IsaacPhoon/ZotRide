@@ -16,15 +16,15 @@ const CreateOrganization = () => {
           </div>
 
           {/* Organization Name */}
-          <div className="relative">
+          <div className="relative pb-4">
             <input
               type="text"
               placeholder="Organization Name"
               maxLength={255}
               onChange={(e) => setNameLength(e.target.value.length)}
-              className="w-full bg-transparent border-b-2 border-black pb-3 text-2xl focus:outline-none placeholder-black/50"
+              className="w-full bg-gray-100 border-b-2 border-black px-3 py-3 text-2xl focus:outline-none placeholder-black/50 rounded-t-lg"
             />
-            <div className="absolute -bottom-6 right-0 text-xs text-black/50">
+            <div className="absolute bottom-0 right-0 text-xs text-black/50">
               {nameLength}/255
             </div>
           </div>

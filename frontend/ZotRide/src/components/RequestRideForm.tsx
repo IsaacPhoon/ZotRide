@@ -11,7 +11,7 @@ const RequestRideForm = () => {
         <input
           type="text"
           placeholder="Pickup Location"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -19,7 +19,7 @@ const RequestRideForm = () => {
         <input
           type="text"
           placeholder="Dropoff Location"
-          className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+          className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
         />
       </div>
 
@@ -28,14 +28,14 @@ const RequestRideForm = () => {
           <input
             type="text"
             placeholder="Time"
-            className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+            className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
           />
         </div>
         <div>
           <input
             type="text"
             placeholder="Day"
-            className="w-full bg-transparent border-b-2 border-black pb-2 focus:outline-none placeholder-black/50"
+            className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none placeholder-black/50 rounded-t-lg"
           />
         </div>
       </div>

@@ -1,48 +1,70 @@
 import React from "react";
+import testImage from "../assets/testimage.png";
 
 const IntroductionGrid: React.FC = () => {
   return (
     <section className="min-h-screen bg-white py-20 px-4">
       <div className="max-w-7xl mx-auto space-y-32">
-        {/* First Hero Section - Content on Right */}
+        {/* First Hero Section - Image on Left, Content on Right */}
         <div className="hero">
-          <div className="hero-content flex-col lg:flex-row-reverse justify-end w-full">
-            <div className="max-w-md lg:ml-auto">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="hero-content flex-col lg:flex-row-reverse gap-12">
+            <div className="max-w-md">
+              <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Title goes here
               </h2>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 This is a text area. Write some cool stuff here
               </p>
             </div>
+            <figure>
+              <img
+                src={testImage}
+                alt="Feature illustration"
+                className="max-w-sm rounded-lg shadow-2xl"
+              />
+            </figure>
           </div>
         </div>
 
-        {/* Second Hero Section - Content on Left */}
+        {/* Second Hero Section - Image on Right, Content on Left */}
         <div className="hero">
-          <div className="hero-content flex-col lg:flex-row justify-start w-full">
-            <div className="max-w-md lg:mr-auto">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="hero-content flex-col lg:flex-row gap-12">
+            <div className="max-w-md">
+              <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Title goes here
               </h2>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 This is a text area. Write some cool stuff here
               </p>
             </div>
+            <figure>
+              <img
+                src={testImage}
+                alt="Feature illustration"
+                className="max-w-sm rounded-lg shadow-2xl"
+              />
+            </figure>
           </div>
         </div>
 
-        {/* Third Hero Section - Content on Right */}
+        {/* Third Hero Section - Image on Left, Content on Right */}
         <div className="hero">
-          <div className="hero-content flex-col lg:flex-row-reverse justify-end w-full">
-            <div className="max-w-md lg:ml-auto">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="hero-content flex-col lg:flex-row-reverse gap-12">
+            <div className="max-w-md">
+              <h2 className="text-5xl font-bold text-gray-900 mb-6">
                 Title goes here
               </h2>
-              <p className="text-gray-600">
+              <p className="text-lg text-gray-600">
                 This is a text area. Write some cool stuff here
               </p>
             </div>
+            <figure>
+              <img
+                src={testImage}
+                alt="Feature illustration"
+                className="max-w-sm rounded-lg shadow-2xl"
+              />
+            </figure>
           </div>
         </div>
       </div>

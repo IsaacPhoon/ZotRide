@@ -1,6 +1,6 @@
 import React from "react";
 
-const Introduction: React.FC = () => {
+const About: React.FC = () => {
   return (
     <section className="min-h-screen flex flex-col items-center justify-center px-4">
       <div className="text-center max-w-4xl">
@@ -41,4 +41,4 @@ const Introduction: React.FC = () => {
   );
 };
 
-export default Introduction;
+export default About;

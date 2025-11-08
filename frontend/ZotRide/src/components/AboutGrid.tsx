@@ -1,9 +1,9 @@
 import React from "react";
 import testImage from "../assets/testimage.png";
 
-const IntroductionGrid: React.FC = () => {
+const AboutGrid: React.FC = () => {
   return (
-    <section className="min-h-screen bg-white py-20 px-4">
+    <section className="min-h-screen bg-white pb-20 px-4">
       <div className="max-w-7xl mx-auto space-y-32">
         {/* First Hero Section - Image on Left, Content on Right */}
         <div className="hero">
@@ -72,4 +72,4 @@ const IntroductionGrid: React.FC = () => {
   );
 };
 
-export default IntroductionGrid;
+export default AboutGrid;

@@ -11,11 +11,11 @@ class Organization(db.Model):
     __tablename__ = 'organizations'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    members: Mapped[list['UserOrganizationData']] = relationship('UserOrganizationData', back_populates='organization')
+    members: Mapped[list['UserOrganizationData']] = relationship('UserOrganizationData', back_populates='organization', cascade='all, delete-orphan')
     name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     organization_rides: Mapped[list['Ride']] = relationship('Ride', back_populates='organization')
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, 

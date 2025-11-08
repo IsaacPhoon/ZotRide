@@ -4,7 +4,7 @@ const RequestRideForm = () => {
   const [commentLength, setCommentLength] = useState(0)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-[2rem]">
       <h1 className="text-5xl font-bold mb-12">Request a ZotRide</h1>
 
       <div className="text-lg">

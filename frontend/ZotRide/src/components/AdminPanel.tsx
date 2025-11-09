@@ -108,7 +108,7 @@ const AdminPanel = ({
   };
 
   return (
-    <div className="bg-gray-100 border-2 border-black rounded-lg p-8 mb-8">
+    <div className="border-2 border-black rounded-3xl p-8 mb-8">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">
           {isOwner ? "Owner Panel" : "Admin Panel"}

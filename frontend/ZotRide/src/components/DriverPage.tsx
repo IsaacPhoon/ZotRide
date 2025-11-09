@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import HostRideForm from "./HostRideForm";
 import RideRequestCard from "./RideRequestCard";
 import DriverRideCard from "./DriverRideCard";
-import testImage from "../assets/testimage2.avif";
 import { rideAPI, authAPI, driverAPI } from "../services/api";
 import type { Ride } from "../services/api";
+import host from "../assets/zotride_host.png";
 
 const DriverPage: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);
@@ -202,7 +202,7 @@ const DriverPage: React.FC = () => {
           <HostRideForm />
           <div className="flex items-center justify-center">
             <img
-              src={testImage}
+              src={host}
               alt="Ride illustration"
               className="w-full h-auto rounded-lg shadow-lg"
             />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import testImage from "../assets/testimage.png";
+import join from "../assets/zotride_joinOrg.png";
 import { organizationAPI } from "../services/api";
 import ErrorModal from "./ErrorModal";
 
@@ -115,7 +115,7 @@ const JoinOrganization = () => {
         <div className="flex items-center justify-center">
           <div className="relative">
             <img
-              src={testImage}
+              src={join}
               alt="Organization illustration"
               className="w-full h-auto rounded-lg shadow-2xl"
             />

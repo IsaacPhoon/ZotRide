@@ -13,35 +13,42 @@ from app.auth_utils import (
 auth_bp = Blueprint('auth', __name__)
 
 
-@auth_bp.route('/auth/google', methods=['POST'])
-def google_auth():
+@auth_bp.route('/auth/google/verify', methods=['POST'])
+def google_verify():
     """
-    Authenticate or register a user with Google Sign-In.
+    Step 1: Verify Google token and check if user exists.
+
+    If user exists (returning user):
+        - Logs them in and returns JWT token
+
+    If user doesn't exist (new user):
+        - Validates email is @uci.edu
+        - Returns user info from Google for registration form
+        - Frontend should redirect to registration page
 
     Expected JSON body:
     {
-        "token": "<Google ID token>",
-        "gender": 0,  # Required for new users: 0=Male, 1=Female, 2=Other
-        "preferred_contact": "email or phone"  # Required for new users
+        "token": "<Google ID token>"
     }
 
     Returns:
-        200: User authenticated successfully (existing user)
+        200: Existing user - Login successful
             {
+                "exists": true,
                 "message": "Login successful",
                 "token": "<JWT token>",
-                "user": <user data>,
-                "is_new_user": false
+                "user": <user data>
             }
-        201: User registered successfully (new user)
+        200: New user - Needs to complete registration
             {
-                "message": "Registration successful",
-                "token": "<JWT token>",
-                "user": <user data>,
-                "is_new_user": true
+                "exists": false,
+                "message": "Please complete registration",
+                "email": "user@uci.edu",
+                "name": "John Doe",
+                "google_id": "..."
             }
-        400: Invalid request data, missing required fields, or non-UCI email
-        401: Invalid Google token
+        400: Invalid request data
+        401: Invalid Google token or non-UCI email
     """
     try:
         data = request.get_json()
@@ -57,6 +64,7 @@ def google_auth():
 
         email = google_user_info['email']
         name = google_user_info['name']
+        google_id = google_user_info['google_id']
 
         # Check if user already exists
         existing_user = db.session.execute(
@@ -68,20 +76,76 @@ def google_auth():
             jwt_token = generate_jwt_token(existing_user.id, existing_user.email)
 
             return jsonify({
+                'exists': True,
                 'message': 'Login successful',
                 'token': jwt_token,
-                'user': existing_user.to_dict(),
-                'is_new_user': False
+                'user': existing_user.to_dict()
             }), 200
 
-        # User doesn't exist - register
-        # Validate required fields for registration
-        required_fields = ['gender', 'preferred_contact']
+        # User doesn't exist - return info for registration
+        return jsonify({
+            'exists': False,
+            'message': 'Please complete registration',
+            'email': email,
+            'name': name,
+            'google_id': google_id
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@auth_bp.route('/auth/google/register', methods=['POST'])
+def google_register():
+    """
+    Step 2: Complete registration for new users.
+    This should be called after the user fills out the registration form.
+
+    Expected JSON body:
+    {
+        "token": "<Google ID token>",  # Same token from verify step
+        "gender": 0,  # 0=Male, 1=Female, 2=Other
+        "preferred_contact": "email or phone number"
+    }
+
+    Returns:
+        201: User registered successfully
+            {
+                "message": "Registration successful",
+                "token": "<JWT token>",
+                "user": <user data>,
+                "is_admin": true/false
+            }
+        400: Invalid request data, missing fields, or user already exists
+        401: Invalid Google token
+    """
+    try:
+        data = request.get_json()
+
+        # Validate required fields
+        required_fields = ['token', 'gender', 'preferred_contact']
         if not all(field in data for field in required_fields):
             return jsonify({
-                'error': 'Missing required fields for registration',
+                'error': 'Missing required fields',
                 'required_fields': required_fields
             }), 400
+
+        # Verify Google token again (security measure)
+        try:
+            google_user_info = verify_google_token(data['token'])
+        except ValueError as e:
+            return jsonify({'error': str(e)}), 401
+
+        email = google_user_info['email']
+        name = google_user_info['name']
+
+        # Check if user already exists (shouldn't happen, but safety check)
+        existing_user = db.session.execute(
+            select(User).where(User.email == email)
+        ).scalar_one_or_none()
+
+        if existing_user:
+            return jsonify({'error': 'User already exists. Please login instead.'}), 400
 
         # Validate gender value
         if data['gender'] not in [0, 1, 2]:
@@ -109,7 +173,6 @@ def google_auth():
             'message': 'Registration successful',
             'token': jwt_token,
             'user': user.to_dict(),
-            'is_new_user': True,
             'is_admin': is_admin
         }), 201
 

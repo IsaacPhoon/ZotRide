@@ -269,57 +269,6 @@ const AboutGrid: React.FC = () => {
             </motion.figure>
           </div>
         </motion.div>
-
-        {/* Call to Action at the bottom */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: false, amount: 0.5 }}
-          transition={{ duration: 0.8 }}
-          className="text-center py-20"
-        >
-          <motion.div
-            className="bg-gradient-to-r from-blue-500 via-purple-500 to-yellow-500 rounded-3xl p-12 shadow-2xl"
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <h3 className="text-5xl font-bold text-white mb-6">
-              Ready to ZotRide?
-            </h3>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Join thousands of Anteaters already riding together. Sign up today
-              and get your first ride!
-            </p>
-            <motion.div
-              className="flex gap-4 justify-center"
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: false }}
-            >
-              <motion.div variants={childVariants}>
-                <div className="stat bg-white/20 backdrop-blur-sm rounded-xl text-white">
-                  <div className="stat-title text-white/80">Active Riders</div>
-                  <div className="stat-value">1,000+</div>
-                </div>
-              </motion.div>
-              <motion.div variants={childVariants}>
-                <div className="stat bg-white/20 backdrop-blur-sm rounded-xl text-white">
-                  <div className="stat-title text-white/80">
-                    Rides Completed
-                  </div>
-                  <div className="stat-value">5,000+</div>
-                </div>
-              </motion.div>
-              <motion.div variants={childVariants}>
-                <div className="stat bg-white/20 backdrop-blur-sm rounded-xl text-white">
-                  <div className="stat-title text-white/80">Organizations</div>
-                  <div className="stat-value">50+</div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   );

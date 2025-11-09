@@ -233,6 +233,17 @@ export const organizationAPI = {
     const response = await api.get<OrganizationMember[]>(`/organizations/${orgId}/members`);
     return response.data;
   },
+
+  /**
+   * Get all rides for a specific organization
+   */
+  getOrganizationRides: async (orgId: number, status?: 'active' | 'completed'): Promise<Ride[]> => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    
+    const response = await api.get<Ride[]>(`/organizations/${orgId}/rides`, { params });
+    return response.data;
+  },
 };
 
 // Ride API Functions

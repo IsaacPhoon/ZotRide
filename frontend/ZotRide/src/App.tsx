@@ -1,32 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import Profile from "./components/Profile";
 import AboutPage from "./components/AboutPage";
 import DriverPage from "./components/DriverPage";
 import Organizations from "./components/Organizations";
+import { useAuth } from "./context/AuthContext";
 
 const App: React.FC = () => {
+  const { isAuthenticated, isLoading } = useAuth();
   const [activePage, setActivePage] = useState<
     "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE"
-  >("HOME");
+  >("ABOUT");
+
+  // Redirect to ABOUT if user logs out while on a protected page
+  useEffect(() => {
+    if (!isAuthenticated && activePage !== "ABOUT") {
+      setActivePage("ABOUT");
+    }
+  }, [isAuthenticated, activePage]);
+
+  const handleSetActivePage = (
+    page: "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE"
+  ) => {
+    // Only allow navigation to protected pages if authenticated
+    if (page === "ABOUT" || isAuthenticated) {
+      setActivePage(page);
+    }
+  };
 
   const renderPage = () => {
+    // Show loading state while checking auth
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-black">Loading...</p>
+        </div>
+      );
+    }
+
     switch (activePage) {
       case "HOME":
-        return <Home />;
+        return isAuthenticated ? <Home /> : <AboutPage />;
       case "ABOUT":
-        return (
-          <>
-            <AboutPage />
-          </>
-        );
+        return <AboutPage />;
       case "DRIVER":
-        return <DriverPage />;
+        return isAuthenticated ? <DriverPage /> : <AboutPage />;
       case "ORGANIZATIONS":
-        return <Organizations />;
+        return isAuthenticated ? <Organizations /> : <AboutPage />;
       case "PROFILE":
-        return <Profile />;
+        return isAuthenticated ? <Profile /> : <AboutPage />;
       default:
         return null;
     }
@@ -34,7 +57,11 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col bg-white min-h-screen w-full no-scrollbar">
-      <Navbar activeItem={activePage} setActiveItem={setActivePage} />
+      <Navbar
+        activeItem={activePage}
+        setActiveItem={handleSetActivePage}
+        isAuthenticated={isAuthenticated}
+      />
       {renderPage()}
     </div>
   );

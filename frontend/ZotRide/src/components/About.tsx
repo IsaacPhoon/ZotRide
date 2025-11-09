@@ -1,9 +1,93 @@
-import React from "react";
+import React, { useState } from "react";
+import { GoogleLogin } from '@react-oauth/google';
+import type { CredentialResponse } from '@react-oauth/google';
+import { useAuth } from '../context/AuthContext';
+import { authAPI } from '../services/api';
+import RegistrationModal from './RegistrationModal';
 
 const About: React.FC = () => {
+  const { login } = useAuth();
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [registrationData, setRegistrationData] = useState<{
+    googleToken: string;
+    name: string;
+    email: string;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>('');
+
   const scrollToAboutGrid = () => {
     const element = document.getElementById("about-grid");
     element?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) {
+      setError('No credential received from Google');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // credentialResponse.credential is the Google ID token (JWT format)
+      const result = await authAPI.verifyGoogleToken(credentialResponse.credential);
+
+      if (result.exists && result.token && result.user) {
+        // Existing user - login
+        login(result.token, result.user);
+      } else if (!result.exists && result.email && result.name) {
+        // New user - show registration modal
+        setRegistrationData({
+          googleToken: credentialResponse.credential,
+          name: result.name,
+          email: result.email,
+        });
+        setShowRegistration(true);
+      }
+    } catch (err: any) {
+      console.error('Google Sign-In Error:', err);
+      setError(err.response?.data?.error || 'Failed to sign in with Google. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError('Google Sign-In was unsuccessful. Please try again.');
+  };
+
+  const handleRegistration = async (gender: number, preferredContact: string) => {
+    if (!registrationData) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const result = await authAPI.registerUser(
+        registrationData.googleToken,
+        gender,
+        preferredContact
+      );
+
+      // Registration successful - login
+      login(result.token, result.user);
+      setShowRegistration(false);
+      setRegistrationData(null);
+      // You can add navigation here if needed
+    } catch (err: any) {
+      console.error('Registration Error:', err);
+      setError(err.response?.data?.error || 'Failed to complete registration. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCloseRegistration = () => {
+    setShowRegistration(false);
+    setRegistrationData(null);
+    setError('');
   };
 
   return (
@@ -19,9 +103,24 @@ const About: React.FC = () => {
           Less is more. Think minimally.
         </p>
 
-        <button className="border-2 border-black text-black px-8 py-3 rounded-full text-sm font-medium hover:bg-black hover:text-white transition-colors mb-8">
-          UCI Sign In
-        </button>
+        {error && (
+          <div className="mb-4 text-red-600 text-sm">{error}</div>
+        )}
+
+        <div className="mb-8 flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            text="signin_with"
+            shape="pill"
+            theme="outline"
+            size="large"
+          />
+        </div>
+
+        {isLoading && (
+          <div className="mb-4 text-gray-600 text-sm">Signing in...</div>
+        )}
 
         <button
           onClick={scrollToAboutGrid}
@@ -45,6 +144,17 @@ const About: React.FC = () => {
           </svg>
         </button>
       </div>
+
+      {/* Registration Modal */}
+      {showRegistration && registrationData && (
+        <RegistrationModal
+          name={registrationData.name}
+          email={registrationData.email}
+          onSubmit={handleRegistration}
+          onClose={handleCloseRegistration}
+          isLoading={isLoading}
+        />
+      )}
     </section>
   );
 };

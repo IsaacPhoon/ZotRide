@@ -600,3 +600,5 @@ def get_organization_rides(org_id, current_user):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+#Add Transfer Ownership Route

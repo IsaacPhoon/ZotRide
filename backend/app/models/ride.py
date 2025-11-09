@@ -52,8 +52,8 @@ class Ride(db.Model):
         pickup_address: str,
         pickup_time: datetime,
         destination_address: str,
-        max_riders: int,
         price_option: str,
+        max_riders: int = 4,
         driver_id: Optional[int] = None,
         organization_id: Optional[int] = None,
         driver_comment: Optional[str] = None

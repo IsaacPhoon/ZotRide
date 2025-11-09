@@ -73,6 +73,11 @@ const Organizations = () => {
     fetchOrganizations();
   };
 
+  // Callback for when an organization is joined
+  const handleOrganizationJoined = () => {
+    fetchOrganizations();
+  };
+
   // If an organization is selected, show the details page
   if (selectedOrg) {
     return (
@@ -88,7 +93,7 @@ const Organizations = () => {
   return (
     <div className="bg-white">
       <CreateOrganization onOrganizationCreated={handleOrganizationCreated} />
-      <JoinOrganization />
+      <JoinOrganization onOrganizationJoined={handleOrganizationJoined} />
 
       {/* Organizations List Section */}
       <div className="px-[4rem] py-[4rem]">

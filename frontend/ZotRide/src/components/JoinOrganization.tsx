@@ -3,7 +3,11 @@ import join from "../assets/zotride_joinOrg.png";
 import { organizationAPI } from "../services/api";
 import ErrorModal from "./ErrorModal";
 
-const JoinOrganization = () => {
+interface JoinOrganizationProps {
+  onOrganizationJoined?: () => void;
+}
+
+const JoinOrganization = ({ onOrganizationJoined }: JoinOrganizationProps) => {
   const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +40,11 @@ const JoinOrganization = () => {
       // Success!
       setSuccess(`Successfully joined ${response.organization.name}!`);
       setAccessCode(""); // Clear the input
+
+      // Notify parent component to refresh organizations
+      if (onOrganizationJoined) {
+        onOrganizationJoined();
+      }
 
       // Clear success message after 5 seconds
       setTimeout(() => {

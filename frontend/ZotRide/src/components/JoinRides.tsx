@@ -9,17 +9,28 @@ const JoinRides = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchDriverPosts();
+    fetchAllRides();
   }, []);
 
-  const fetchDriverPosts = async () => {
+  const fetchAllRides = async () => {
     try {
       setLoading(true);
-      const data = await rideAPI.getDriverPosts();
-      setRides(data);
+      // Fetch both driver posts and rider requests
+      const [driverPosts, riderRequests] = await Promise.all([
+        rideAPI.getDriverPosts(),
+        rideAPI.getRiderRequests(),
+      ]);
+      // Combine both arrays
+      const allRides = [...driverPosts, ...riderRequests];
+      // Sort by pickup time (earliest first)
+      allRides.sort(
+        (a, b) =>
+          new Date(a.pickup_time).getTime() - new Date(b.pickup_time).getTime()
+      );
+      setRides(allRides);
       setError(null);
     } catch (err: any) {
-      console.error("Error fetching driver posts:", err);
+      console.error("Error fetching rides:", err);
       setError(
         err.response?.data?.error || "Failed to load rides. Please try again."
       );
@@ -97,7 +108,7 @@ const JoinRides = () => {
                 cost={formatCost(ride.price_option)}
                 driver={ride.driver?.name}
                 ridersList={ride.riders?.map((r) => r.name) || []}
-                onRideJoined={fetchDriverPosts}
+                onRideJoined={fetchAllRides}
               />
             ))}
           </div>

@@ -4,7 +4,11 @@ import type { CreateRideRequest } from "../services/api";
 import ErrorModal from "./ErrorModal";
 import AddressAutocomplete from "./AddressAutocomplete";
 
-const RequestRideForm = () => {
+interface RequestRideFormProps {
+  onRideCreated?: () => void;
+}
+
+const RequestRideForm = ({ onRideCreated }: RequestRideFormProps = {}) => {
   const [pickupAddress, setPickupAddress] = useState("");
   const [destinationAddress, setDestinationAddress] = useState("");
   const [date, setDate] = useState("");
@@ -88,6 +92,11 @@ const RequestRideForm = () => {
       setPriceOption("free");
       setComment("");
       setCommentLength(0);
+
+      // Call the callback if provided
+      if (onRideCreated) {
+        onRideCreated();
+      }
     } catch (err: any) {
       console.error("Create Ride Error:", err);
       setError(

@@ -33,6 +33,9 @@ const JoinRidePopup = ({
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
 
+  // Determine if ride has a driver
+  const hasDriver = driver && driver !== "Unknown Driver";
+
   const handleJoin = async () => {
     if (isInActiveRide) {
       setError(
@@ -76,7 +79,7 @@ const JoinRidePopup = ({
             <div className="space-y-2 text-black">
               <p className="text-black">{date}</p>
               <p className="text-black">
-                <b>Driver:</b> {driver}
+                <b>Driver:</b> {hasDriver ? driver : "No Driver Yet"}
               </p>
               <p className="text-black">
                 <b>Current Riders:</b>{" "}

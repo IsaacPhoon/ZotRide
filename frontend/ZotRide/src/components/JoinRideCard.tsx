@@ -14,6 +14,7 @@ interface JoinRideCardProps {
   driver?: string;
   ridersList?: string[];
   onRideJoined?: () => void;
+  isOwnRide?: boolean; // Whether this is the current user's ride
 }
 
 const JoinRideCard = ({
@@ -27,11 +28,16 @@ const JoinRideCard = ({
   driver = "Unknown Driver",
   ridersList = [],
   onRideJoined,
+  isOwnRide = false,
 }: JoinRideCardProps) => {
   const [showPopup, setShowPopup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   const [isInActiveRide, setIsInActiveRide] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
+
+  // Determine if ride has a driver
+  const hasDriver = driver && driver !== "Unknown Driver";
 
   useEffect(() => {
     const checkActiveRide = async () => {
@@ -78,6 +84,28 @@ const JoinRideCard = ({
     setShowPopup(false);
   };
 
+  const handleCancel = async () => {
+    if (!window.confirm("Are you sure you want to cancel this ride?")) {
+      return;
+    }
+
+    try {
+      setIsCanceling(true);
+      await rideAPI.deleteRide(id);
+      // Refresh the rides list
+      if (onRideJoined) {
+        onRideJoined();
+      }
+    } catch (err: any) {
+      console.error("Error canceling ride:", err);
+      setError(
+        err.response?.data?.error || "Failed to cancel ride. Please try again."
+      );
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
   return (
     <>
       <div className="card border border-black bg-white/50 rounded-3xl max-h-[18rem]">
@@ -86,23 +114,52 @@ const JoinRideCard = ({
             {pickup} → {dropoff} @ {time}
           </h2>
           <p className="text-black">{date}</p>
+          {!hasDriver && (
+            <div className="badge badge-warning gap-2 text-black font-semibold">
+              No Driver
+            </div>
+          )}
           <p className="text-black">{riders} Riders</p>
           <p className="text-black">Ride Cost: {cost}</p>
           <div className="card-actions justify-start gap-4 mt-2">
-            <button
-              onClick={handleJoin}
-              disabled={isJoining || isInActiveRide}
-              className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-8 disabled:opacity-50"
-              title={isInActiveRide ? "You are already in an active ride" : ""}
-            >
-              {isJoining ? "Joining..." : "Join"}
-            </button>
-            <button
-              onClick={handleSeeMore}
-              className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6"
-            >
-              See More
-            </button>
+            {isOwnRide ? (
+              // Show Cancel and See More for user's own ride
+              <>
+                <button
+                  onClick={handleCancel}
+                  disabled={isCanceling}
+                  className="h-[2rem] w-[8rem] btn btn-outline border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white active:scale-100 px-6 disabled:opacity-50"
+                >
+                  {isCanceling ? "Canceling..." : "Cancel"}
+                </button>
+                <button
+                  onClick={handleSeeMore}
+                  className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6"
+                >
+                  See More
+                </button>
+              </>
+            ) : (
+              // Show Join and See More for other rides
+              <>
+                <button
+                  onClick={handleJoin}
+                  disabled={isJoining || isInActiveRide}
+                  className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-8 disabled:opacity-50"
+                  title={
+                    isInActiveRide ? "You are already in an active ride" : ""
+                  }
+                >
+                  {isJoining ? "Joining..." : "Join"}
+                </button>
+                <button
+                  onClick={handleSeeMore}
+                  className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6"
+                >
+                  See More
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>

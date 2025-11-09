@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import HostRideForm from "./HostRideForm";
 import RideRequestCard from "./RideRequestCard";
 import DriverRideCard from "./DriverRideCard";
-import testImage from "../assets/testimage2.avif";
+import RouteMap from "./RouteMap";
 import { rideAPI, authAPI, driverAPI } from "../services/api";
 import type { Ride } from "../services/api";
 
@@ -12,6 +12,8 @@ const DriverPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCurrentRides, setIsLoadingCurrentRides] = useState(true);
   const [error, setError] = useState("");
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [destinationAddress, setDestinationAddress] = useState("");
 
   useEffect(() => {
     fetchCurrentUserAndRides();
@@ -106,105 +108,115 @@ const DriverPage: React.FC = () => {
   return (
     <div className="px-[2rem]">
       <div className="min-h-screen bg-white text-black px-[2rem] py-[4rem]">
-        <div className="mb-[8rem]">
-          <h1 className="text-5xl font-bold mb-8">Current Ride</h1>
+        {/* Split Screen: Current Ride (Left) and Active Ride Requests (Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-[8rem]">
+          {/* Left Side: Current Ride */}
+          <div>
+            <h1 className="text-5xl font-bold mb-8">Current Ride</h1>
 
-          {isLoadingCurrentRides && (
-            <div className="flex justify-center items-center h-[16rem]">
-              <p className="text-gray-600 text-lg">
-                Loading your current rides...
-              </p>
-            </div>
-          )}
+            {isLoadingCurrentRides && (
+              <div className="flex justify-center items-center h-[16rem]">
+                <p className="text-gray-600 text-lg">
+                  Loading your current rides...
+                </p>
+              </div>
+            )}
 
-          {!isLoadingCurrentRides && currentRides.length === 0 && (
-            <div className="text-center text-gray-600 mt-12 mb-12">
-              <p className="text-xl">
-                No active rides available at the moment.
-              </p>
-              <p className="mt-2">Check back later or host your own ride!</p>
-            </div>
-          )}
+            {!isLoadingCurrentRides && currentRides.length === 0 && (
+              <div className="text-center text-gray-600 mt-12 mb-12">
+                <p className="text-xl">
+                  No active rides available at the moment.
+                </p>
+                <p className="mt-2">Check back later or host your own ride!</p>
+              </div>
+            )}
 
-          {!isLoadingCurrentRides && currentRides.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {currentRides.map((ride) => {
-                const { time, date } = formatDateTime(ride.pickup_time);
-                return (
-                  <DriverRideCard
-                    key={ride.id}
-                    id={ride.id}
-                    pickup={ride.pickup_address}
-                    dropoff={ride.destination_address}
-                    time={time}
-                    date={date}
-                    riders={ride.riders?.length || 0}
-                    cost={formatPriceOption(ride.price_option)}
-                    ridersList={ride.riders?.map((r) => r.name) || []}
-                    onRideCompleted={fetchCurrentDriverRides}
-                  />
-                );
-              })}
-            </div>
-          )}
+            {!isLoadingCurrentRides && currentRides.length > 0 && (
+              <div className="space-y-6">
+                {currentRides.map((ride) => {
+                  const { time, date } = formatDateTime(ride.pickup_time);
+                  return (
+                    <DriverRideCard
+                      key={ride.id}
+                      id={ride.id}
+                      pickup={ride.pickup_address}
+                      dropoff={ride.destination_address}
+                      time={time}
+                      date={date}
+                      riders={ride.riders?.length || 0}
+                      cost={formatPriceOption(ride.price_option)}
+                      ridersList={ride.riders?.map((r) => r.name) || []}
+                      onRideCompleted={fetchCurrentDriverRides}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-          <h1 className="text-5xl font-bold mb-8">Active Ride Requests</h1>
+          {/* Right Side: Active Ride Requests */}
+          <div>
+            <h1 className="text-5xl font-bold mb-8">Active Ride Requests</h1>
 
-          {isLoading && (
-            <div className="flex justify-center items-center h-[32rem]">
-              <p className="text-gray-600 text-lg">Loading ride requests...</p>
-            </div>
-          )}
+            {isLoading && (
+              <div className="flex justify-center items-center h-[16rem]">
+                <p className="text-gray-600 text-lg">Loading ride requests...</p>
+              </div>
+            )}
 
-          {error && (
-            <div className="flex justify-center items-center h-[32rem]">
-              <p className="text-red-600 text-lg">{error}</p>
-            </div>
-          )}
+            {error && (
+              <div className="flex justify-center items-center h-[16rem]">
+                <p className="text-red-600 text-lg">{error}</p>
+              </div>
+            )}
 
-          {!isLoading && !error && rides.length === 0 && (
-            <div className="flex justify-center items-center h-[32rem]">
-              <p className="text-gray-600 text-lg">
-                No active ride requests available
-              </p>
-            </div>
-          )}
+            {!isLoading && !error && rides.length === 0 && (
+              <div className="flex justify-center items-center h-[16rem]">
+                <p className="text-gray-600 text-lg">
+                  No active ride requests available
+                </p>
+              </div>
+            )}
 
-          {!isLoading && !error && rides.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-[32rem] overflow-y-auto pr-4">
-              {rides.map((ride) => {
-                const { time, date } = formatDateTime(ride.pickup_time);
-                return (
-                  <RideRequestCard
-                    key={ride.id}
-                    id={ride.id}
-                    pickup={ride.pickup_address}
-                    dropoff={ride.destination_address}
-                    time={time}
-                    date={date}
-                    riders={ride.riders?.length || 0}
-                    cost={formatPriceOption(ride.price_option)}
-                    ridersList={ride.riders?.map((r) => r.name) || []}
-                    commentsList={
-                      ride.riders
-                        ?.map((r) => r.comment || "No comment")
-                        .filter((c) => c !== "No comment") || []
-                    }
-                    onRideAccepted={fetchRiderRequests}
-                  />
-                );
-              })}
-            </div>
-          )}
+            {!isLoading && !error && rides.length > 0 && (
+              <div className="space-y-6 max-h-[40rem] overflow-y-auto pr-4">
+                {rides.map((ride) => {
+                  const { time, date } = formatDateTime(ride.pickup_time);
+                  return (
+                    <RideRequestCard
+                      key={ride.id}
+                      id={ride.id}
+                      pickup={ride.pickup_address}
+                      dropoff={ride.destination_address}
+                      time={time}
+                      date={date}
+                      riders={ride.riders?.length || 0}
+                      cost={formatPriceOption(ride.price_option)}
+                      ridersList={ride.riders?.map((r) => r.name) || []}
+                      commentsList={
+                        ride.riders
+                          ?.map((r) => r.comment || "No comment")
+                          .filter((c) => c !== "No comment") || []
+                      }
+                      onRideAccepted={fetchRiderRequests}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Host a ZotRide Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[8rem]">
-          <HostRideForm />
+          <HostRideForm
+            onPickupChange={setPickupAddress}
+            onDestinationChange={setDestinationAddress}
+          />
           <div className="flex items-center justify-center">
-            <img
-              src={testImage}
-              alt="Ride illustration"
-              className="w-full h-auto rounded-lg shadow-lg"
+            <RouteMap
+              pickupAddress={pickupAddress}
+              destinationAddress={destinationAddress}
             />
           </div>
         </div>

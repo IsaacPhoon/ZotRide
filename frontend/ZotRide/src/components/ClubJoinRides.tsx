@@ -105,6 +105,8 @@ const ClubJoinRides = ({
                     date={date}
                     riders={ride.riders?.length || 0}
                     cost={getCostDisplay(ride.price_option)}
+                    driver={ride.driver?.name}
+                    driverId={ride.driver_id ?? undefined}
                   />
                 );
               })}

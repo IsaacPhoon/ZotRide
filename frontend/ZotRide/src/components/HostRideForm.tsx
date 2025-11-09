@@ -5,7 +5,15 @@ import type { CreateRideRequest } from "../services/api";
 import ErrorModal from "./ErrorModal";
 import AddressAutocomplete from "./AddressAutocomplete";
 
-const HostRideForm = () => {
+interface HostRideFormProps {
+  onPickupChange?: (address: string) => void;
+  onDestinationChange?: (address: string) => void;
+}
+
+const HostRideForm = ({
+  onPickupChange,
+  onDestinationChange,
+}: HostRideFormProps) => {
   const { user } = useAuth();
   const [pickupAddress, setPickupAddress] = useState("");
   const [destinationAddress, setDestinationAddress] = useState("");
@@ -33,6 +41,16 @@ const HostRideForm = () => {
     };
     checkActiveRide();
   }, []);
+
+  const handlePickupChange = (address: string) => {
+    setPickupAddress(address);
+    onPickupChange?.(address);
+  };
+
+  const handleDestinationChange = (address: string) => {
+    setDestinationAddress(address);
+    onDestinationChange?.(address);
+  };
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -99,6 +117,8 @@ const HostRideForm = () => {
       // Clear form
       setPickupAddress("");
       setDestinationAddress("");
+      onPickupChange?.("");
+      onDestinationChange?.("");
       setDate("");
       setTime("");
       setMaxRiders("4");
@@ -128,7 +148,7 @@ const HostRideForm = () => {
       <div className="text-lg">
         <AddressAutocomplete
           value={pickupAddress}
-          onChange={setPickupAddress}
+          onChange={handlePickupChange}
           placeholder="Pickup Location"
           disabled={isLoading}
         />
@@ -137,7 +157,7 @@ const HostRideForm = () => {
       <div>
         <AddressAutocomplete
           value={destinationAddress}
-          onChange={setDestinationAddress}
+          onChange={handleDestinationChange}
           placeholder="Destination Location"
           disabled={isLoading}
         />

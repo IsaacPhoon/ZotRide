@@ -133,6 +133,7 @@ const JoinRides = () => {
                   }
                   cost={formatCost(ride.price_option)}
                   driver={ride.driver?.name}
+                  driverId={ride.driver_id ?? undefined}
                   ridersList={ride.riders?.map((r) => r.name) || []}
                   onRideJoined={fetchAllRides}
                   isOwnRide={!!isOwnRide}

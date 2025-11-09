@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { rideAPI } from "../services/api";
+import { rideAPI, authAPI } from "../services/api";
 import ErrorModal from "./ErrorModal";
+import RiderLicenseModal from "./RiderLicenseModal";
 
 interface JoinRidePopupProps {
   id: number;
@@ -30,13 +31,31 @@ const JoinRidePopup = ({
   isInActiveRide = false,
 }: JoinRidePopupProps) => {
   const [isJoining, setIsJoining] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
-  const [currentRiders, setCurrentRiders] = useState<string[]>(riders);
+  const [currentRiders, setCurrentRiders] = useState<Array<{ user_id: number; name: string }>>([]);
   const [isLoadingRiders, setIsLoadingRiders] = useState(false);
+  const [selectedRiderId, setSelectedRiderId] = useState<number | null>(null);
+  const [isUserInThisRide, setIsUserInThisRide] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // Determine if ride has a driver
   const hasDriver = driver && driver !== "Unknown Driver";
+
+  // Fetch current user ID and check if they're in this ride
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const user = await authAPI.getCurrentUser();
+        setCurrentUserId(user.id);
+      } catch (err) {
+        console.error("Error fetching current user:", err);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   // Fetch current riders when popup opens
   useEffect(() => {
@@ -44,34 +63,38 @@ const JoinRidePopup = ({
       try {
         setIsLoadingRiders(true);
         const ridersData = await rideAPI.getRideRiders(id);
-        // Enrich rider data with names
-        const enrichedRiders = await Promise.all(
-          ridersData.map(async (rider) => {
-            try {
-              const userAPI = (await import("../services/api")).userAPI;
-              const user = await userAPI.getUserById(rider.user_id);
-              return user.name;
-            } catch (err) {
-              console.error(`Error fetching rider ${rider.user_id}:`, err);
-              return "Unknown";
-            }
-          })
-        );
+        // Map riders to include user_id and name
+        const enrichedRiders = ridersData.map((rider) => ({
+          user_id: rider.user_id,
+          name: rider.name,
+        }));
         setCurrentRiders(enrichedRiders);
+
+        // Check if current user is in this ride
+        if (currentUserId) {
+          const userInRide = enrichedRiders.some(
+            (rider) => rider.user_id === currentUserId
+          );
+          setIsUserInThisRide(userInRide);
+        }
       } catch (err) {
         console.error("Error fetching riders:", err);
         // Fall back to the riders prop if API call fails
-        setCurrentRiders(riders);
+        const fallbackRiders = riders.map((name, index) => ({
+          user_id: -index - 1, // Negative IDs for fallback data
+          name,
+        }));
+        setCurrentRiders(fallbackRiders);
       } finally {
         setIsLoadingRiders(false);
       }
     };
 
     fetchRiders();
-  }, [id, riders]);
+  }, [id, riders, currentUserId]);
 
   const handleJoin = async () => {
-    if (isInActiveRide) {
+    if (isInActiveRide && !isUserInThisRide) {
       setError(
         "You are already in an active ride. Please complete or leave your current ride before joining another."
       );
@@ -96,6 +119,29 @@ const JoinRidePopup = ({
     }
   };
 
+  const handleLeave = async () => {
+    if (!window.confirm("Are you sure you want to leave this ride?")) {
+      return;
+    }
+
+    try {
+      setIsLeaving(true);
+      await rideAPI.leaveRide(id);
+      // Refresh the rides list
+      if (onRideJoined) {
+        onRideJoined();
+      }
+      onClose();
+    } catch (err: any) {
+      console.error("Error leaving ride:", err);
+      setError(
+        err.response?.data?.error || "Failed to leave ride. Please try again."
+      );
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
   return (
     <>
       <div
@@ -117,54 +163,94 @@ const JoinRidePopup = ({
               </p>
               <p className="text-black">
                 <b>Current Riders:</b>{" "}
-                {isLoadingRiders
-                  ? "Loading..."
-                  : currentRiders.length > 0
-                  ? currentRiders.join(", ")
-                  : "None yet"}
+                {isLoadingRiders ? (
+                  "Loading..."
+                ) : currentRiders.length > 0 ? (
+                  <span>
+                    {currentRiders.map((rider, index) => (
+                      <span key={rider.user_id}>
+                        {rider.user_id > 0 ? (
+                          <span
+                            onClick={() => setSelectedRiderId(rider.user_id)}
+                            className="underline cursor-pointer hover:text-blue-600 transition-colors font-semibold"
+                            title="View rider's license"
+                          >
+                            {rider.name}
+                          </span>
+                        ) : (
+                          <span>{rider.name}</span>
+                        )}
+                        {index < currentRiders.length - 1 && ", "}
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  "None yet"
+                )}
               </p>
               <p className="text-black">
                 <b>Ride Cost:</b> {cost}
               </p>
             </div>
 
-            <div className="mt-4">
-              <label className="text-black font-semibold">
-                Add a comment (optional):
-              </label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="textarea textarea-bordered w-full mt-2 bg-white text-black border-black"
-                placeholder="Any special requests or notes for the driver..."
-                rows={3}
-              />
-            </div>
+            {!isUserInThisRide && (
+              <div className="mt-4">
+                <label className="text-black font-semibold">
+                  Add a comment (optional):
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="textarea textarea-bordered w-full mt-2 bg-white text-black border-black"
+                  placeholder="Any special requests or notes for the driver..."
+                  rows={3}
+                />
+              </div>
+            )}
 
             <div className="card-actions justify-start gap-4 mt-4">
               <button
                 onClick={onClose}
-                disabled={isJoining}
+                disabled={isJoining || isLeaving}
                 className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6 disabled:opacity-50"
               >
                 Cancel
               </button>
-              <button
-                onClick={handleJoin}
-                disabled={isJoining || isInActiveRide}
-                className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6 disabled:opacity-50"
-                title={
-                  isInActiveRide ? "You are already in an active ride" : ""
-                }
-              >
-                {isJoining ? "Joining..." : "Join"}
-              </button>
+              {isUserInThisRide ? (
+                <button
+                  onClick={handleLeave}
+                  disabled={isLeaving}
+                  className="h-[2rem] w-[8rem] btn btn-outline border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white active:scale-100 px-6 disabled:opacity-50"
+                >
+                  {isLeaving ? "Leaving..." : "Leave"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleJoin}
+                  disabled={isJoining || (isInActiveRide && !isUserInThisRide)}
+                  className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6 disabled:opacity-50"
+                  title={
+                    isInActiveRide && !isUserInThisRide
+                      ? "You are already in an active ride"
+                      : ""
+                  }
+                >
+                  {isJoining ? "Joining..." : "Join"}
+                </button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {error && <ErrorModal message={error} onClose={() => setError(null)} />}
+
+      {selectedRiderId && selectedRiderId > 0 && (
+        <RiderLicenseModal
+          riderId={selectedRiderId}
+          onClose={() => setSelectedRiderId(null)}
+        />
+      )}
     </>
   );
 };

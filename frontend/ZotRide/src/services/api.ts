@@ -354,7 +354,7 @@ export const rideAPI = {
    * Join a ride as a rider
    */
   joinRide: async (rideId: number, userComment?: string): Promise<{ message: string; ride: Ride }> => {
-    const response = await api.post(`/rides/${rideId}/join`, {
+    const response = await api.post(`/rides/${rideId}/join_rider`, {
       user_comment: userComment,
     });
     return response.data;

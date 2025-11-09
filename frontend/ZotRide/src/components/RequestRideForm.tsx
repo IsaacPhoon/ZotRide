@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { rideAPI } from "../services/api";
 import type { CreateRideRequest } from "../services/api";
 import ErrorModal from "./ErrorModal";
@@ -27,19 +27,6 @@ const RequestRideForm = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isInActiveRide, setIsInActiveRide] = useState(false);
-
-  useEffect(() => {
-    const checkActiveRide = async () => {
-      try {
-        const inRide = await rideAPI.isUserInActiveRide();
-        setIsInActiveRide(inRide);
-      } catch (err) {
-        console.error("Error checking active ride:", err);
-      }
-    };
-    checkActiveRide();
-  }, []);
 
   // Notify parent component when pickup address changes
   const handlePickupChange = (address: string) => {
@@ -62,14 +49,6 @@ const RequestRideForm = ({
     // Clear previous messages
     setError("");
     setSuccess("");
-
-    // Check if user is in an active ride
-    if (isInActiveRide) {
-      setError(
-        "You are already in an active ride. Please complete or leave your current ride before requesting another."
-      );
-      return;
-    }
 
     // Validate required fields
     if (!pickupAddress.trim()) {
@@ -102,20 +81,7 @@ const RequestRideForm = ({
       await rideAPI.createRide(rideData);
       setSuccess("Ride request created successfully!");
 
-      // Clear form
-      setPickupAddress("");
-      setDestinationAddress("");
-      setDate("");
-      setTime("");
-      setPriceOption("free");
-      setComment("");
-      setCommentLength(0);
-
-      // Notify parent that addresses were cleared
-      onPickupChange?.("");
-      onDestinationChange?.("");
-
-      // Notify parent that ride was created
+      // Notify parent that ride was created (will show the active ride instead of form)
       onRideCreated?.();
     } catch (err: any) {
       console.error("Create Ride Error:", err);

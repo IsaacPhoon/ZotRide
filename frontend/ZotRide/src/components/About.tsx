@@ -7,7 +7,7 @@ import RegistrationModal from './RegistrationModal';
 import ErrorModal from './ErrorModal';
 
 const About: React.FC = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [showRegistration, setShowRegistration] = useState(false);
   const [registrationData, setRegistrationData] = useState<{
     googleToken: string;
@@ -105,14 +105,20 @@ const About: React.FC = () => {
         </p>
 
         <div className="mb-8 flex justify-center">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={handleGoogleError}
-            text="signin_with"
-            shape="pill"
-            theme="outline"
-            size="large"
-          />
+          {user ? (
+            <div className="text-lg text-gray-700">
+              Welcome back, {user.name}!
+            </div>
+          ) : (
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={handleGoogleError}
+              text="signin_with"
+              shape="pill"
+              theme="outline"
+              size="large"
+            />
+          )}
         </div>
 
         {isLoading && (

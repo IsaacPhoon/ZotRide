@@ -111,13 +111,6 @@ const JoinRideCard = ({
   }, [id, ridersList, currentUserId]);
 
   const handleJoin = async () => {
-    if (isInActiveRide) {
-      setError(
-        "You are already in an active ride. Please complete or leave your current ride before joining another."
-      );
-      return;
-    }
-
     try {
       setIsJoining(true);
       await rideAPI.joinRide(id);
@@ -247,13 +240,8 @@ const JoinRideCard = ({
               <>
                 <button
                   onClick={handleJoin}
-                  disabled={isJoining || (isInActiveRide && !isUserInThisRide)}
+                  disabled={isJoining}
                   className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-8 disabled:opacity-50"
-                  title={
-                    isInActiveRide && !isUserInThisRide
-                      ? "You are already in an active ride"
-                      : ""
-                  }
                 >
                   {isJoining ? "Joining..." : "Join"}
                 </button>

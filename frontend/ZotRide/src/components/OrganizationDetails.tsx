@@ -53,6 +53,11 @@ const OrganizationDetails = ({
     }
   }, [showMembers]);
 
+  // Fetch members initially for AdminPanel
+  useEffect(() => {
+    fetchMembers();
+  }, [organizationId]);
+
   const fetchMembers = async () => {
     setIsLoadingMembers(true);
     setMembersError(null);
@@ -98,7 +103,13 @@ const OrganizationDetails = ({
       {/* Admin Panel - Only shown if isAdmin is true and organization is loaded */}
       {!isLoadingOrg && isAdmin && organization && (
         <div className="px-[2rem]">
-          <AdminPanel isOwner={isOwner} accessCode={organization.access_code} />
+          <AdminPanel
+            isOwner={isOwner}
+            accessCode={organization.access_code}
+            organizationId={organizationId}
+            members={members}
+            onMembersUpdate={fetchMembers}
+          />
         </div>
       )}
 

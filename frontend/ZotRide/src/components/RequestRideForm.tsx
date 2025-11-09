@@ -5,10 +5,14 @@ import ErrorModal from "./ErrorModal";
 import AddressAutocomplete from "./AddressAutocomplete";
 
 interface RequestRideFormProps {
-  onRideCreated?: () => void;
+  onPickupChange?: (address: string) => void;
+  onDestinationChange?: (address: string) => void;
 }
 
-const RequestRideForm = ({ onRideCreated }: RequestRideFormProps = {}) => {
+const RequestRideForm = ({
+  onPickupChange,
+  onDestinationChange,
+}: RequestRideFormProps) => {
   const [pickupAddress, setPickupAddress] = useState("");
   const [destinationAddress, setDestinationAddress] = useState("");
   const [date, setDate] = useState("");
@@ -34,6 +38,18 @@ const RequestRideForm = ({ onRideCreated }: RequestRideFormProps = {}) => {
     };
     checkActiveRide();
   }, []);
+
+  // Notify parent component when pickup address changes
+  const handlePickupChange = (address: string) => {
+    setPickupAddress(address);
+    onPickupChange?.(address);
+  };
+
+  // Notify parent component when destination address changes
+  const handleDestinationChange = (address: string) => {
+    setDestinationAddress(address);
+    onDestinationChange?.(address);
+  };
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -93,10 +109,9 @@ const RequestRideForm = ({ onRideCreated }: RequestRideFormProps = {}) => {
       setComment("");
       setCommentLength(0);
 
-      // Call the callback if provided
-      if (onRideCreated) {
-        onRideCreated();
-      }
+      // Notify parent that addresses were cleared
+      onPickupChange?.("");
+      onDestinationChange?.("");
     } catch (err: any) {
       console.error("Create Ride Error:", err);
       setError(
@@ -115,16 +130,16 @@ const RequestRideForm = ({ onRideCreated }: RequestRideFormProps = {}) => {
       <div className="text-lg">
         <AddressAutocomplete
           value={pickupAddress}
-          onChange={setPickupAddress}
+          onChange={handlePickupChange}
           placeholder="Pickup Location"
           disabled={isLoading}
         />
       </div>
 
-      <div>
+      <div className="text-lg">
         <AddressAutocomplete
           value={destinationAddress}
-          onChange={setDestinationAddress}
+          onChange={handleDestinationChange}
           placeholder="Destination Location"
           disabled={isLoading}
         />

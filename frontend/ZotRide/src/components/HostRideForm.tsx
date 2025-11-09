@@ -12,7 +12,9 @@ const HostRideForm = () => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [maxRiders, setMaxRiders] = useState("4");
-  const [priceOption, setPriceOption] = useState<'free' | 'gas' | 'gas with fee'>('free');
+  const [priceOption, setPriceOption] = useState<
+    "free" | "gas" | "gas with fee"
+  >("free");
   const [comment, setComment] = useState("");
   const [commentLength, setCommentLength] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -79,12 +81,20 @@ const HostRideForm = () => {
       setDate("");
       setTime("");
       setMaxRiders("4");
-      setPriceOption('free');
+      setPriceOption("free");
       setComment("");
       setCommentLength(0);
     } catch (err: any) {
-      console.error('Create Ride Error:', err);
-      setError(err.response?.data?.error || 'Failed to post ride. Please try again.');
+      console.error("Create Ride Error:", err);
+
+      // Custom error message for driver not found
+      let errorMessage =
+        err.response?.data?.error || "Failed to post ride. Please try again.";
+      if (errorMessage === "Driver not found") {
+        errorMessage = "You are not a driver!";
+      }
+
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +159,9 @@ const HostRideForm = () => {
         <div>
           <select
             value={priceOption}
-            onChange={(e) => setPriceOption(e.target.value as 'free' | 'gas' | 'gas with fee')}
+            onChange={(e) =>
+              setPriceOption(e.target.value as "free" | "gas" | "gas with fee")
+            }
             className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none rounded-t-lg"
             disabled={isLoading}
           >
@@ -176,9 +188,7 @@ const HostRideForm = () => {
       </div>
 
       {success && (
-        <div className="text-green-600 text-sm font-medium">
-          {success}
-        </div>
+        <div className="text-green-600 text-sm font-medium">{success}</div>
       )}
 
       <div className="grid grid-cols-2 gap-8">
@@ -186,12 +196,12 @@ const HostRideForm = () => {
           className="flex rounded-full h-[3rem] border border-black items-center justify-center cursor-pointer hover:bg-black hover:text-white transition px-8"
           onClick={handleSubmit}
         >
-          {isLoading ? 'Posting...' : 'Host'}
+          {isLoading ? "Posting..." : "Host"}
         </div>
       </div>
 
       {/* Error Modal */}
-      <ErrorModal message={error} onClose={() => setError('')} />
+      <ErrorModal message={error} onClose={() => setError("")} />
     </div>
   );
 };

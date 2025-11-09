@@ -8,10 +8,12 @@ import AddressAutocomplete from "./AddressAutocomplete";
 
 interface OrganizationFunctionsProps {
   organizationId: number;
+  onRideCreated?: () => void; // Callback when a ride is successfully created
 }
 
 const OrganizationFunctions = ({
   organizationId,
+  onRideCreated,
 }: OrganizationFunctionsProps) => {
   const { user } = useAuth();
   const [pickupAddress, setPickupAddress] = useState("");
@@ -82,6 +84,11 @@ const OrganizationFunctions = ({
 
       await rideAPI.createRide(rideData);
       setSuccess("Club ride posted successfully!");
+
+      // Call the callback to refresh the rides list
+      if (onRideCreated) {
+        onRideCreated();
+      }
 
       // Clear form
       setPickupAddress("");

@@ -357,6 +357,27 @@ export const rideAPI = {
     });
     return { message: 'Ride accepted successfully', ride: response.data };
   },
+
+  /**
+   * Check if the current user is in any active rides
+   */
+  isUserInActiveRide: async (): Promise<boolean> => {
+    const currentUser = await authAPI.getCurrentUser();
+    const response = await api.get(`/users/${currentUser.id}/rides`);
+    const rides: Ride[] = response.data;
+    // Check if user has any active rides
+    return rides.some(ride => ride.status === 'active');
+  },
+
+  /**
+   * Get current user's active rides
+   */
+  getUserActiveRides: async (): Promise<Ride[]> => {
+    const currentUser = await authAPI.getCurrentUser();
+    const response = await api.get(`/users/${currentUser.id}/rides`);
+    const rides: Ride[] = response.data;
+    return rides.filter(ride => ride.status === 'active');
+  },
 };
 
 // Profile API Functions

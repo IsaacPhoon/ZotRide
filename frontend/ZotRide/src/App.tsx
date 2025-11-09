@@ -41,7 +41,11 @@ const App: React.FC = () => {
 
     switch (activePage) {
       case "HOME":
-        return isAuthenticated ? <Home /> : <AboutPage />;
+        return isAuthenticated ? (
+          <Home setActivePage={handleSetActivePage} />
+        ) : (
+          <AboutPage />
+        );
       case "ABOUT":
         return <AboutPage />;
       case "DRIVER":

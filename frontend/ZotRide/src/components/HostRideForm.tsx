@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { rideAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import type { CreateRideRequest } from "../services/api";
@@ -20,6 +20,19 @@ const HostRideForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isInActiveRide, setIsInActiveRide] = useState(false);
+
+  useEffect(() => {
+    const checkActiveRide = async () => {
+      try {
+        const inRide = await rideAPI.isUserInActiveRide();
+        setIsInActiveRide(inRide);
+      } catch (err) {
+        console.error("Error checking active ride:", err);
+      }
+    };
+    checkActiveRide();
+  }, []);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -30,6 +43,14 @@ const HostRideForm = () => {
     // Clear previous messages
     setError("");
     setSuccess("");
+
+    // Check if user is in an active ride
+    if (isInActiveRide) {
+      setError(
+        "You are already in an active ride. Please complete your current ride before hosting another."
+      );
+      return;
+    }
 
     // Validate required fields
     if (!pickupAddress.trim()) {

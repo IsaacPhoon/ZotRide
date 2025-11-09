@@ -13,6 +13,7 @@ interface JoinRidePopupProps {
   cost: string;
   onClose: () => void;
   onRideJoined?: () => void;
+  isInActiveRide?: boolean;
 }
 
 const JoinRidePopup = ({
@@ -26,12 +27,20 @@ const JoinRidePopup = ({
   cost,
   onClose,
   onRideJoined,
+  isInActiveRide = false,
 }: JoinRidePopupProps) => {
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
 
   const handleJoin = async () => {
+    if (isInActiveRide) {
+      setError(
+        "You are already in an active ride. Please complete or leave your current ride before joining another."
+      );
+      return;
+    }
+
     try {
       setIsJoining(true);
       await rideAPI.joinRide(id, comment || undefined);
@@ -101,8 +110,11 @@ const JoinRidePopup = ({
               </button>
               <button
                 onClick={handleJoin}
-                disabled={isJoining}
+                disabled={isJoining || isInActiveRide}
                 className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6 disabled:opacity-50"
+                title={
+                  isInActiveRide ? "You are already in an active ride" : ""
+                }
               >
                 {isJoining ? "Joining..." : "Join"}
               </button>

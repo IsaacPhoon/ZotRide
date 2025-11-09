@@ -16,6 +16,8 @@ class Organization(db.Model):
     description: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     organization_rides: Mapped[list['Ride']] = relationship('Ride', back_populates='organization')
 
+    access_code: Mapped[str] = mapped_column(String(6), unique=True, nullable=False)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, 
@@ -33,7 +35,8 @@ class Organization(db.Model):
             'id': self.id,
             'name': self.name,
             'description': self.description if self.description else None,
-            'organization_rides': [ride.id for ride in self.organization_rides]
+            'organization_rides': [ride.id for ride in self.organization_rides],
+            'access_code': self.access_code
         }
 
     def __repr__(self) -> str:

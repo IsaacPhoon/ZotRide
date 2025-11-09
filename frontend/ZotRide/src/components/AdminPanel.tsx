@@ -2,13 +2,13 @@ import { useState } from "react";
 
 interface AdminPanelProps {
   isOwner: boolean;
+  accessCode: string;
 }
 
-const AdminPanel = ({ isOwner }: AdminPanelProps) => {
+const AdminPanel = ({ isOwner, accessCode }: AdminPanelProps) => {
   const [showPanel, setShowPanel] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [showDrivers, setShowDrivers] = useState(false);
-  const [accessCode] = useState("ABC123XYZ"); // setAccessCode will be used for regenerating access code feature
 
   // Mock data for demonstration
   const members = [

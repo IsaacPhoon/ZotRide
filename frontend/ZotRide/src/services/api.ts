@@ -81,6 +81,7 @@ export interface Organization {
   id: number;
   name: string;
   description?: string;
+  access_code: string;
   created_at: string;
   updated_at: string;
 }
@@ -227,6 +228,14 @@ export const organizationAPI = {
   },
 
   /**
+   * Get a specific organization by ID
+   */
+  getOrganization: async (orgId: number): Promise<Organization> => {
+    const response = await api.get<Organization>(`/organizations/${orgId}`);
+    return response.data;
+  },
+
+  /**
    * Get members of an organization
    */
   getOrganizationMembers: async (orgId: number): Promise<OrganizationMember[]> => {
@@ -242,6 +251,16 @@ export const organizationAPI = {
     if (status) params.append('status', status);
     
     const response = await api.get<Ride[]>(`/organizations/${orgId}/rides`, { params });
+    return response.data;
+  },
+
+  /**
+   * Join an organization using its access code
+   */
+  joinOrganization: async (accessCode: string): Promise<{ message: string; organization: Organization }> => {
+    const response = await api.post<{ message: string; organization: Organization }>('/organizations/join', {
+      access_code: accessCode,
+    });
     return response.data;
   },
 };

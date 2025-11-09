@@ -66,7 +66,7 @@ export interface User {
   gender: number;
   preferred_contact: string;
   is_system_admin: boolean;
-  date_created: string;
+  created_at: string;
   is_driver: boolean;
   driver_id: number | null;
   driver_approved?: boolean; // New field to track driver approval status
@@ -330,7 +330,7 @@ export interface Ride {
   driver_id: number | null;
   organization_id: number | null;
   driver_comment: string | null;
-  date_created: string;
+  created_at: string;
   available_seats?: number;
   is_full?: boolean;
   driver?: {

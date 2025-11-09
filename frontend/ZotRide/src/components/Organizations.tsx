@@ -91,7 +91,7 @@ const Organizations = () => {
       <JoinOrganization />
 
       {/* Organizations List Section */}
-      <div className="px-[2rem] py-[4rem]">
+      <div className="px-[4rem] py-[4rem]">
         <h2 className="text-4xl font-bold mb-8 text-black">
           All Organizations
         </h2>

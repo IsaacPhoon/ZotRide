@@ -67,7 +67,7 @@ const JoinOrganization = () => {
   };
 
   return (
-    <div className="bg-white text-black py-[4rem] px-[2rem] lg:px-[2rem]">
+    <div className="bg-white text-black py-[4rem] px-[4rem] lg:px-[4rem]">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[8rem] items-center">
         {/* Form Section */}
         <form onSubmit={handleJoinOrganization} className="space-y-10">

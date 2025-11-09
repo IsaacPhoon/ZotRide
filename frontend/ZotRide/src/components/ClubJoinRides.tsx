@@ -29,7 +29,14 @@ const ClubJoinRides = ({
         organizationId,
         "active"
       );
-      setRides(fetchedRides);
+
+      // Filter out past rides
+      const now = new Date();
+      const futureRides = fetchedRides.filter(
+        (ride) => new Date(ride.pickup_time) > now
+      );
+
+      setRides(futureRides);
     } catch (err: any) {
       console.error("Error fetching organization rides:", err);
       setError(err.response?.data?.error || "Failed to load rides");

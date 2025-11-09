@@ -8,6 +8,7 @@ const JoinRides = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [filterQuery, setFilterQuery] = useState("");
 
   useEffect(() => {
     fetchCurrentUser();
@@ -37,12 +38,18 @@ const JoinRides = () => {
       // Enrich rides with driver and rider names
       const enrichedRides = await rideAPI.enrichRidesWithNames(allRides);
 
+      // Filter out past rides
+      const now = new Date();
+      const futureRides = enrichedRides.filter(
+        (ride) => new Date(ride.pickup_time) > now
+      );
+
       // Sort by pickup time (earliest first)
-      enrichedRides.sort(
+      futureRides.sort(
         (a, b) =>
           new Date(a.pickup_time).getTime() - new Date(b.pickup_time).getTime()
       );
-      setRides(enrichedRides);
+      setRides(futureRides);
       setError(null);
     } catch (err: any) {
       console.error("Error fetching rides:", err);
@@ -96,18 +103,49 @@ const JoinRides = () => {
     );
   }
 
+  // Filter rides based on search query
+  const filteredRides = rides.filter((ride) => {
+    if (!filterQuery.trim()) return true;
+    const query = filterQuery.toLowerCase();
+    return (
+      ride.pickup_address.toLowerCase().includes(query) ||
+      ride.destination_address.toLowerCase().includes(query) ||
+      ride.driver?.name?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <>
       <div className="space-y-[2rem] pt-[4rem] pb-[4rem] px-[2rem]">
         <h1 className="text-5xl font-bold mb-12">Join a ZotRide</h1>
-        {rides.length === 0 ? (
+
+        {/* Filter Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Filter by pickup, destination, or driver..."
+            value={filterQuery}
+            onChange={(e) => setFilterQuery(e.target.value)}
+            className="w-full bg-gray-100 border-b-2 border-black px-4 py-3 focus:outline-none placeholder-black/50 rounded-t-lg"
+          />
+        </div>
+
+        {filteredRides.length === 0 ? (
           <div className="text-center text-gray-600 mt-12">
-            <p className="text-xl">No active rides available at the moment.</p>
-            <p className="mt-2">Check back later or host your own ride!</p>
+            <p className="text-xl">
+              {rides.length === 0
+                ? "No active rides available at the moment."
+                : "No rides match your filter."}
+            </p>
+            <p className="mt-2">
+              {rides.length === 0
+                ? "Check back later or host your own ride!"
+                : "Try a different search term."}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-[32rem] overflow-y-auto pr-4">
-            {rides.map((ride) => {
+            {filteredRides.map((ride) => {
               // Check if current user owns this ride
               const isOwnRide =
                 currentUserId &&

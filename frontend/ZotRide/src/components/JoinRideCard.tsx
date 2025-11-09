@@ -169,7 +169,7 @@ const JoinRideCard = ({
     <>
       <div className="card border border-black bg-white/50 rounded-3xl max-h-[18rem]">
         <div className="card-body">
-          <h2 className="card-title text-black font-bold text-xl">
+          <h2 className="card-title text-black font-bold text-xl line-clamp-3">
             {pickup} → {dropoff} @ {time}
           </h2>
           <p className="text-black">{date}</p>

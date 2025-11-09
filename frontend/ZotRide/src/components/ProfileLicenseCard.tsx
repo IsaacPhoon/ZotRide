@@ -249,7 +249,7 @@ const ProfileLicenseCard = ({
 
               <ProfileInfo
                 label="Date Created"
-                value={formatDate(user.date_created)}
+                value={formatDate(user.created_at)}
               />
               <ProfileInfo label="Rides Taken" value="0 Rides" />
 

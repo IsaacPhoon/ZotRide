@@ -7,7 +7,7 @@ const RiderProfile = () => {
     contact: "Email",
     preferredName: "Preferred Name",
     gender: "Gender",
-    dateCreated: "xx/xx/xx",
+    created_at: "xx/xx/xx",
     ridesTaken: "3 Rides",
   });
 
@@ -140,7 +140,7 @@ const RiderProfile = () => {
                   <label className="font-bold min-w-[140px] text-right">
                     Date Created:
                   </label>
-                  <span className="flex-1 pb-1">{profileData.dateCreated}</span>
+                  <span className="flex-1 pb-1">{profileData.created_at}</span>
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2">

@@ -18,13 +18,19 @@ def create_app(config_name=None):
     # Configure CORS
     cors_origins = app.config['CORS_ORIGINS']
     if cors_origins == '*':
-        cors.init_app(app)
+        cors.init_app(app,
+            resources={r"/*": {"origins": "*"}},
+            allow_headers=["Content-Type", "Authorization"],
+            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            expose_headers=["Content-Type", "Authorization"]
+        )
     else:
         cors.init_app(app,
-            resources={r"/api/*": {"origins": cors_origins}},
+            resources={r"/api/*": {"origins": cors_origins.split(',')}},
             supports_credentials=True,
             allow_headers=["Content-Type", "Authorization"],
-            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+            methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            expose_headers=["Content-Type", "Authorization"]
         )
 
     from app.routes import register_blueprints

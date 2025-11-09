@@ -6,7 +6,6 @@ interface OrganizationCardProps {
 }
 
 const OrganizationCard = ({
-  id,
   organizationName,
   description,
   members,

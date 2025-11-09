@@ -5,9 +5,10 @@ interface NavbarProps {
   setActiveItem: (
     item: "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE"
   ) => void;
+  isAuthenticated: boolean;
 }
 
-const Navbar = ({ activeItem, setActiveItem }: NavbarProps) => {
+const Navbar = ({ activeItem, setActiveItem, isAuthenticated }: NavbarProps) => {
   return (
     <div className="flex justify-center w-full">
       <div className="navbar border border-black w-19/20 h-20 rounded-full justify-center mt-4">
@@ -24,25 +25,25 @@ const Navbar = ({ activeItem, setActiveItem }: NavbarProps) => {
             </div>
             <div
               onClick={() => setActiveItem("HOME")}
-              className="cursor-pointer"
+              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
             >
               <NavbarItem text="HOME" active={activeItem === "HOME"} />
             </div>
             <div
               onClick={() => setActiveItem("DRIVER")}
-              className="cursor-pointer"
+              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
             >
               <NavbarItem text="DRIVER" active={activeItem === "DRIVER"} />
             </div>
             <div
               onClick={() => setActiveItem("ORGANIZATIONS")}
-              className="cursor-pointer"
+              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
             >
               <NavbarItem text="ORGS" active={activeItem === "ORGANIZATIONS"} />
             </div>
             <div
               onClick={() => setActiveItem("PROFILE")}
-              className="cursor-pointer"
+              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
             >
               <NavbarItem text="PROFILE" active={activeItem === "PROFILE"} />
             </div>

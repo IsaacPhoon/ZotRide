@@ -33,7 +33,7 @@ const CreateOrganization = () => {
               rows={5}
               maxLength={500}
               onChange={(e) => setDescriptionLength(e.target.value.length)}
-              className="w-full bg-gray-100 border-b-2 border-black px-3 text-lg focus:outline-none placeholder-black/50 resize-none rounded-t-lg"
+              className="w-full bg-gray-100 border-b-2 border-black px-3 text-2xl focus:outline-none placeholder-black/50 resize-none rounded-t-lg"
             />
             <div className="absolute bottom-0 right-0 text-xs text-black/50 ">
               {descriptionLength}/500

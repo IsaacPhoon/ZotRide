@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface NavbarItemProps {
     text: string;
     active: boolean;

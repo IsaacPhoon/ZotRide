@@ -1,4 +1,3 @@
-import React from 'react'
 import JoinRideCard from './JoinRideCard'
 
 interface RideData {

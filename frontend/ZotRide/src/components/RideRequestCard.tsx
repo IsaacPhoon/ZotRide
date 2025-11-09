@@ -9,7 +9,6 @@ interface RideRequestCardProps {
 }
 
 const RideRequestCard = ({
-  id,
   pickup,
   dropoff,
   time,

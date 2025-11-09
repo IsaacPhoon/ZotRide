@@ -452,7 +452,7 @@ Get all rides with optional filtering.
 **Query Parameters:**
 - `status` (optional): active/completed/cancelled
 - `has_driver` (optional): true/false
-- `organization_id` (optional): Filter by organization
+- `organization_id` (optional): Filter by organization; if not provided, excludes organization rides
 - `limit` (optional): Maximum number to return
 - `offset` (optional): Number to skip
 

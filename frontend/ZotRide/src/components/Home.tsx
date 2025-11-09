@@ -16,6 +16,7 @@ const Home = ({ setActivePage }: HomeProps) => {
   const [destinationAddress, setDestinationAddress] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -23,12 +24,19 @@ const Home = ({ setActivePage }: HomeProps) => {
     }
   };
 
+  const handleRideCreated = () => {
+    // Increment trigger to refresh JoinRides
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   return (
     <div className="bg-white text-black px-[2rem]">
       {/* Destination Search Bar */}
       <div className="pt-[4rem] pb-[2rem] px-[2rem]">
         <div className="max-full justify-left">
-          <h2 className="text-5xl font-bold mb-4 justify-left">Search for Rides</h2>
+          <h2 className="text-5xl font-bold mb-4 justify-left">
+            Search for Rides
+          </h2>
           <div className="flex gap-4">
             <input
               type="text"
@@ -53,6 +61,7 @@ const Home = ({ setActivePage }: HomeProps) => {
           <RequestRideForm
             onPickupChange={setPickupAddress}
             onDestinationChange={setDestinationAddress}
+            onRideCreated={handleRideCreated}
           />
         </div>
         <div className="flex flex-col justify-center">
@@ -63,7 +72,7 @@ const Home = ({ setActivePage }: HomeProps) => {
         </div>
       </div>
       <HomeNavCards setActivePage={setActivePage} />
-      <JoinRides />
+      <JoinRides refreshTrigger={refreshTrigger} />
 
       {/* Destination Search Modal */}
       <DestinationSearchModal

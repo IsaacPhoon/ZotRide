@@ -218,12 +218,15 @@ const DriverPage: React.FC = () => {
               </div>
             )}
 
-            {!isLoading && !error && rides.length > 0 && filteredRides.length === 0 && (
-              <div className="text-center text-gray-600 mt-12">
-                <p className="text-xl">No rides match your filter.</p>
-                <p className="mt-2">Try a different search term.</p>
-              </div>
-            )}
+            {!isLoading &&
+              !error &&
+              rides.length > 0 &&
+              filteredRides.length === 0 && (
+                <div className="text-center text-gray-600 mt-12">
+                  <p className="text-xl">No rides match your filter.</p>
+                  <p className="mt-2">Try a different search term.</p>
+                </div>
+              )}
 
             {!isLoading && !error && filteredRides.length > 0 && (
               <div className="space-y-6 max-h-[40rem] overflow-y-auto pr-4">

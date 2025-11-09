@@ -3,7 +3,11 @@ import JoinRideCard from "./JoinRideCard";
 import ErrorModal from "./ErrorModal";
 import { rideAPI, authAPI, type Ride } from "../services/api";
 
-const JoinRides = () => {
+interface JoinRidesProps {
+  refreshTrigger?: number;
+}
+
+const JoinRides = ({ refreshTrigger }: JoinRidesProps) => {
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,6 +18,13 @@ const JoinRides = () => {
     fetchCurrentUser();
     fetchAllRides();
   }, []);
+
+  // Refresh when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger !== undefined && refreshTrigger > 0) {
+      fetchAllRides();
+    }
+  }, [refreshTrigger]);
 
   const fetchCurrentUser = async () => {
     try {

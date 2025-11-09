@@ -105,12 +105,14 @@ const JoinRides = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-[32rem] overflow-y-auto pr-4">
             {rides.map((ride) => {
               // Check if current user owns this ride
-              const isOwnRide = currentUserId && (
+              const isOwnRide =
+                currentUserId &&
                 // User is the driver
-                ride.driver_id === currentUserId ||
-                // User created the rider request (is the only rider and no driver)
-                (!ride.driver_id && ride.riders?.length === 1 && ride.riders[0].user_id === currentUserId)
-              );
+                (ride.driver_id === currentUserId ||
+                  // User created the rider request (is the only rider and no driver)
+                  (!ride.driver_id &&
+                    ride.riders?.length === 1 &&
+                    ride.riders[0].user_id === currentUserId));
 
               return (
                 <JoinRideCard

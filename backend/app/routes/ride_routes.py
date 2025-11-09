@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import select, and_
 from datetime import datetime, timezone
 from app.extensions import db
-from app.models import Ride, DriverData, User, UserRideData, Organization
+from app.models import Ride, DriverData, UserRideData, Organization
 from app.auth_utils import token_required
 
 ride_bp = Blueprint('ride', __name__)

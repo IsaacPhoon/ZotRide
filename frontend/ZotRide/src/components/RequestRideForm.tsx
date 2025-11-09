@@ -7,11 +7,13 @@ import AddressAutocomplete from "./AddressAutocomplete";
 interface RequestRideFormProps {
   onPickupChange?: (address: string) => void;
   onDestinationChange?: (address: string) => void;
+  onRideCreated?: () => void;
 }
 
 const RequestRideForm = ({
   onPickupChange,
   onDestinationChange,
+  onRideCreated,
 }: RequestRideFormProps) => {
   const [pickupAddress, setPickupAddress] = useState("");
   const [destinationAddress, setDestinationAddress] = useState("");
@@ -112,6 +114,9 @@ const RequestRideForm = ({
       // Notify parent that addresses were cleared
       onPickupChange?.("");
       onDestinationChange?.("");
+
+      // Notify parent that ride was created
+      onRideCreated?.();
     } catch (err: any) {
       console.error("Create Ride Error:", err);
       setError(

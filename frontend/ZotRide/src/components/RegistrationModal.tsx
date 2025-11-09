@@ -77,7 +77,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
               </label>
               <input
                 type="text"
-                placeholder="Email or phone number"
+                placeholder="example@example.com | (123) 456-7890 | @example"
                 value={preferredContact}
                 onChange={(e) => setPreferredContact(e.target.value)}
                 className="input input-bordered w-full border-2 border-black rounded-full bg-white text-black placeholder-gray-400 focus:outline-none focus:border-black"

@@ -57,6 +57,10 @@ const DriverPage: React.FC = () => {
       <div className="min-h-screen bg-white text-black px-[2rem] py-[4rem]">
         <div className="mb-[8rem]">
           <h1 className="text-5xl font-bold mb-8">Current Ride</h1>
+          <div className="text-center text-gray-600 mt-12">
+            <p className="text-xl">No active rides available at the moment.</p>
+            <p className="mt-2">Check back later or host your own ride!</p>
+          </div>
           <h1 className="text-5xl font-bold mb-8">Active Ride Requests</h1>
 
           {isLoading && (

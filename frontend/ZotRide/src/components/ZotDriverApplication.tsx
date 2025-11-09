@@ -99,7 +99,6 @@ const ZotDriverApplication = () => {
   };
 
   if (isApprovedDriver) {
-    console.log("User role:", isApprovedDriver);
     return (
       <div className="space-y-8">
         <h1 className="text-5xl font-bold mb-12">ZotDriver Status</h1>
@@ -114,7 +113,6 @@ const ZotDriverApplication = () => {
       </div>
     );
   } else if (hasPendingApplication) {
-    console.log("User role:", hasPendingApplication);
     return (
       <div className="space-y-8">
         <h1 className="text-5xl font-bold mb-12">ZotDriver Application</h1>

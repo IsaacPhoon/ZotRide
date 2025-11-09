@@ -103,7 +103,7 @@ const ClubJoinRides = ({
                     dropoff={ride.destination_address}
                     time={time}
                     date={date}
-                    riders={ride.max_riders}
+                    riders={ride.riders?.length || 0}
                     cost={getCostDisplay(ride.price_option)}
                   />
                 );

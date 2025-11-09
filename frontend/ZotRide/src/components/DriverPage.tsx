@@ -138,7 +138,7 @@ const DriverPage: React.FC = () => {
                     dropoff={ride.destination_address}
                     time={time}
                     date={date}
-                    riders={ride.max_riders}
+                    riders={ride.riders?.length || 0}
                     cost={formatPriceOption(ride.price_option)}
                     ridersList={ride.riders?.map((r) => r.name) || []}
                     onRideCompleted={fetchCurrentDriverRides}
@@ -182,7 +182,7 @@ const DriverPage: React.FC = () => {
                     dropoff={ride.destination_address}
                     time={time}
                     date={date}
-                    riders={ride.max_riders}
+                    riders={ride.riders?.length || 0}
                     cost={formatPriceOption(ride.price_option)}
                     ridersList={ride.riders?.map((r) => r.name) || []}
                     commentsList={

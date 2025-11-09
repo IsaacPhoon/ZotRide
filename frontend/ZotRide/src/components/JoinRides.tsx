@@ -12,6 +12,14 @@ const JoinRides = () => {
   useEffect(() => {
     fetchCurrentUser();
     fetchAllRides();
+
+    // Auto-refresh rides every 4 seconds
+    const intervalId = setInterval(() => {
+      fetchAllRides();
+    }, 4000); // 4 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchCurrentUser = async () => {

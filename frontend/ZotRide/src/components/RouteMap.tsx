@@ -155,15 +155,14 @@ const Directions = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
     directionsRenderer.setRouteIndex(routeIndex);
   }, [routeIndex, directionsRenderer]);
 
-  // Display route info if available
-  if (!routes || routes.length === 0) return null;
-
-  const selectedRoute = routes[routeIndex];
-  const leg = selectedRoute.legs[0];
+  // Check if we have a complete route
+  const hasCompleteRoute = routes && routes.length > 0;
+  const selectedRoute = hasCompleteRoute ? routes[routeIndex] : null;
+  const leg = selectedRoute?.legs[0];
 
   return (
     <>
-      {/* Pickup Marker (Green) */}
+      {/* Pickup Marker (Green) - Show whenever we have pickup coords */}
       {pickupCoords && (
         <Marker
           position={pickupCoords}
@@ -179,7 +178,7 @@ const Directions = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
         />
       )}
 
-      {/* Destination Marker (Red) */}
+      {/* Destination Marker (Red) - Show whenever we have destination coords */}
       {destinationCoords && (
         <Marker
           position={destinationCoords}
@@ -195,30 +194,34 @@ const Directions = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
         />
       )}
 
-      {/* Route Information Panel */}
-      <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg border-2 border-black z-10 max-w-xs">
-        <h3 className="font-bold text-lg mb-2">Route Information</h3>
-        <div className="flex items-start gap-2 mb-1">
-          <div className="w-3 h-3 rounded-full bg-green-500 mt-1"></div>
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-gray-600">Pickup</p>
-            <p className="text-sm">{leg.start_address}</p>
+      {/* Route Information Panel - Only show when we have a complete route */}
+      {hasCompleteRoute && leg && (
+        <div className="absolute top-4 left-4 bg-white/30 backdrop-blur-sm p-4 rounded-lg shadow-lg border-2 border-black z-10 max-w-xs">
+          <h3 className="font-bold text-lg mb-2">Route Information</h3>
+          <div className="flex items-start gap-2 mb-1">
+            <div className="w-3 h-3 rounded-full bg-green-500 mt-1"></div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-gray-600">Pickup</p>
+              <p className="text-sm">{leg.start_address}</p>
+            </div>
           </div>
-        </div>
-        <div className="flex items-start gap-2 mb-3">
-          <div className="w-3 h-3 rounded-full bg-red-500 mt-1"></div>
-          <div className="flex-1">
-            <p className="text-xs font-semibold text-gray-600">Destination</p>
-            <p className="text-sm">{leg.end_address}</p>
+          <div className="flex items-start gap-2 mb-3">
+            <div className="w-3 h-3 rounded-full bg-red-500 mt-1"></div>
+            <div className="flex-1">
+              <p className="text-xs font-semibold text-gray-600">Destination</p>
+              <p className="text-sm">{leg.end_address}</p>
+            </div>
           </div>
+          <p className="text-sm">
+            <span className="font-semibold">Distance:</span>{" "}
+            {leg.distance?.text}
+          </p>
+          <p className="text-sm">
+            <span className="font-semibold">Duration:</span>{" "}
+            {leg.duration?.text}
+          </p>
         </div>
-        <p className="text-sm">
-          <span className="font-semibold">Distance:</span> {leg.distance?.text}
-        </p>
-        <p className="text-sm">
-          <span className="font-semibold">Duration:</span> {leg.duration?.text}
-        </p>
-      </div>
+      )}
     </>
   );
 };
@@ -229,11 +232,11 @@ const RouteMap = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
   // Default center (UCI campus)
   const defaultCenter = { lat: 33.6405, lng: -117.8443 };
 
-  const hasRoute = pickupAddress && destinationAddress;
+  const hasAnyAddress = pickupAddress || destinationAddress;
 
   return (
     <div className="w-full h-full min-h-[500px] rounded-lg overflow-hidden border-2 border-black relative">
-      {!hasRoute && (
+      {!hasAnyAddress && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-20">
           <div className="text-center p-8">
             <h3 className="text-2xl font-bold mb-2">Enter Route Details</h3>
@@ -252,7 +255,7 @@ const RouteMap = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
           disableDefaultUI={false}
           mapId="route-map"
         >
-          {hasRoute && (
+          {hasAnyAddress && (
             <Directions
               pickupAddress={pickupAddress}
               destinationAddress={destinationAddress}

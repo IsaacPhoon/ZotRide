@@ -3,6 +3,7 @@ import RequestRideForm from "./RequestRideForm";
 import HomeNavCards from "./HomeNavCards";
 import JoinRides from "./JoinRides";
 import JoinRideCard from "./JoinRideCard";
+import RouteMap from "./RouteMap";
 import { rideAPI, type Ride } from "../services/api";
 
 interface HomeProps {
@@ -14,9 +15,19 @@ interface HomeProps {
 const Home = ({ setActivePage }: HomeProps) => {
   const [activeRideRequest, setActiveRideRequest] = useState<Ride | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pickupAddress, setPickupAddress] = useState("");
+  const [destinationAddress, setDestinationAddress] = useState("");
 
   useEffect(() => {
     fetchUserActiveRideRequest();
+
+    // Auto-refresh active ride every 5 seconds
+    const intervalId = setInterval(() => {
+      fetchUserActiveRideRequest();
+    }, 5000); // 5 seconds
+
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   const fetchUserActiveRideRequest = async () => {
@@ -95,12 +106,25 @@ const Home = ({ setActivePage }: HomeProps) => {
             />
           </div>
         ) : (
-          <RequestRideForm onRideCreated={fetchUserActiveRideRequest} />
+          <RequestRideForm
+            onRideCreated={fetchUserActiveRideRequest}
+            onPickupChange={setPickupAddress}
+            onDestinationChange={setDestinationAddress}
+          />
         )}
-        <div>
-          <h1 className="text-5xl font-bold">
-            An AI generated picture will go here
-          </h1>
+        <div className="flex flex-col justify-center">
+          {activeRideRequest ? (
+            <div>
+              <h1 className="text-5xl font-bold">
+                An AI generated picture will go here
+              </h1>
+            </div>
+          ) : (
+            <RouteMap
+              pickupAddress={pickupAddress}
+              destinationAddress={destinationAddress}
+            />
+          )}
         </div>
       </div>
       <HomeNavCards setActivePage={setActivePage} />

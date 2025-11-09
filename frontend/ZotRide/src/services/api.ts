@@ -47,6 +47,10 @@ export interface User {
   preferred_contact: string;
   is_system_admin: boolean;
   date_created: string;
+  is_driver: boolean;
+  driver_id: number | null;
+  driver_approved?: boolean; // New field to track driver approval status
+  total_reviews_authored?: number;
 }
 
 export interface GoogleVerifyResponse {
@@ -178,10 +182,25 @@ export interface Ride {
   destination_address: string;
   max_riders: number;
   price_option: string;
+  status: string;
   driver_id: number | null;
   organization_id: number | null;
   driver_comment: string | null;
   date_created: string;
+  available_seats?: number;
+  is_full?: boolean;
+  driver?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  riders?: Array<{
+    user_id: number;
+    name: string;
+    email: string;
+    comment: string | null;
+    joined_at: string;
+  }>;
 }
 
 export const rideAPI = {
@@ -198,6 +217,136 @@ export const rideAPI = {
    */
   getRiderRequests: async (): Promise<Ride[]> => {
     const response = await api.get('/rides/rider-requests');
+    return response.data;
+  },
+
+  /**
+   * Get all driver posts (rides with driver)
+   */
+  getDriverPosts: async (params?: { limit?: number; offset?: number }): Promise<Ride[]> => {
+    const response = await api.get('/rides/driver-posts', { params });
+    return response.data;
+  },
+
+  /**
+   * Join a ride as a rider
+   */
+  joinRide: async (rideId: number, userComment?: string): Promise<{ message: string; ride: Ride }> => {
+    const response = await api.post(`/rides/${rideId}/join`, {
+      user_comment: userComment,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get all riders for a specific ride
+   */
+  getRideRiders: async (rideId: number): Promise<Array<{
+    user_id: number;
+    name: string;
+    email: string;
+    comment: string | null;
+    joined_at: string;
+  }>> => {
+    const response = await api.get(`/rides/${rideId}/riders`);
+    return response.data;
+  },
+
+  /**
+   * Get a specific ride by ID
+   */
+  getRide: async (rideId: number): Promise<Ride> => {
+    const response = await api.get(`/rides/${rideId}`);
+    return response.data;
+  },
+
+  /**
+   * Accept a ride request as a driver (assign yourself as the driver)
+   */
+  acceptRide: async (rideId: number, driverComment?: string): Promise<{ message: string; ride: Ride }> => {
+    const currentUser = await authAPI.getCurrentUser();
+    if (!currentUser.driver_id) {
+      throw new Error('You must be an approved driver to accept rides');
+    }
+    const response = await api.put(`/rides/${rideId}`, {
+      driver_id: currentUser.driver_id,
+      driver_comment: driverComment,
+    });
+    return { message: 'Ride accepted successfully', ride: response.data };
+  },
+};
+
+// Profile API Functions
+export interface UpdateProfileRequest {
+  name: string;
+  gender: number;
+  preferred_contact: string;
+}
+
+export interface UpdateProfileResponse {
+  user: User;
+}
+
+export const profileAPI = {
+  /**
+   * Update current user's profile information using existing user endpoint
+   */
+  updateProfile: async (profileData: UpdateProfileRequest): Promise<UpdateProfileResponse> => {
+    // Get current user to get their ID
+    const currentUser = await authAPI.getCurrentUser();
+    const response = await api.put(`/users/${currentUser.id}`, profileData);
+    return { user: response.data };
+  },
+
+  /**
+   * Get current user's profile information (uses auth/me endpoint)
+   */
+  getProfile: async (): Promise<User> => {
+    return await authAPI.getCurrentUser();
+  },
+};
+
+// Driver API Functions
+export interface CreateDriverRequest {
+  license_image: string;
+  vehicle_data: string;
+  license_plate: string;
+}
+
+export interface DriverData {
+  id: number;
+  user_id: number;
+  license_image: string;
+  vehicle_data: string;
+  license_plate: string;
+  is_approved: boolean;
+  approved_at: string | null;
+  average_rating: number;
+}
+
+export interface CreateDriverResponse {
+  driver: DriverData;
+  message?: string;
+}
+
+export const driverAPI = {
+  /**
+   * Register as a driver - creates driver data for the authenticated user
+   */
+  registerDriver: async (driverData: CreateDriverRequest): Promise<CreateDriverResponse> => {
+    const response = await api.post('/drivers', driverData);
+    return response.data;
+  },
+
+  /**
+   * Get current user's driver data
+   */
+  getMyDriverData: async (): Promise<DriverData> => {
+    const currentUser = await authAPI.getCurrentUser();
+    if (!currentUser.driver_id) {
+      throw new Error('User is not a driver');
+    }
+    const response = await api.get(`/drivers/${currentUser.driver_id}`);
     return response.data;
   },
 };

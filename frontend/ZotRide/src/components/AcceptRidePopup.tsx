@@ -2,51 +2,53 @@ import { useState } from "react";
 import { rideAPI } from "../services/api";
 import ErrorModal from "./ErrorModal";
 
-interface JoinRidePopupProps {
+interface AcceptRidePopupProps {
   id: number;
   pickup: string;
   dropoff: string;
   time: string;
   date: string;
-  driver: string;
   riders: string[];
+  comments: string[];
   cost: string;
   onClose: () => void;
-  onRideJoined?: () => void;
+  onRideAccepted?: () => void;
 }
 
-const JoinRidePopup = ({
+const AcceptRidePopup = ({
   id,
   pickup,
   dropoff,
   time,
   date,
-  driver,
   riders,
+  comments,
   cost,
   onClose,
-  onRideJoined,
-}: JoinRidePopupProps) => {
-  const [isJoining, setIsJoining] = useState(false);
+  onRideAccepted,
+}: AcceptRidePopupProps) => {
+  const [isAccepting, setIsAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [comment, setComment] = useState("");
+  const [driverComment, setDriverComment] = useState("");
 
-  const handleJoin = async () => {
+  const handleAccept = async () => {
     try {
-      setIsJoining(true);
-      await rideAPI.joinRide(id, comment || undefined);
+      setIsAccepting(true);
+      await rideAPI.acceptRide(id, driverComment || undefined);
       // Refresh the rides list
-      if (onRideJoined) {
-        onRideJoined();
+      if (onRideAccepted) {
+        onRideAccepted();
       }
       onClose();
     } catch (err: any) {
-      console.error("Error joining ride:", err);
+      console.error("Error accepting ride:", err);
       setError(
-        err.response?.data?.error || "Failed to join ride. Please try again."
+        err.response?.data?.error ||
+          err.message ||
+          "Failed to accept ride. Please try again."
       );
     } finally {
-      setIsJoining(false);
+      setIsAccepting(false);
     }
   };
 
@@ -67,11 +69,12 @@ const JoinRidePopup = ({
             <div className="space-y-2 text-black">
               <p className="text-black">{date}</p>
               <p className="text-black">
-                <b>Driver:</b> {driver}
-              </p>
-              <p className="text-black">
                 <b>Current Riders:</b>{" "}
                 {riders.length > 0 ? riders.join(", ") : "None yet"}
+              </p>
+              <p className="text-black">
+                <b>Rider Comments:</b>{" "}
+                {comments.length > 0 ? comments.join(", ") : "None yet"}
               </p>
               <p className="text-black">
                 <b>Ride Cost:</b> {cost}
@@ -80,13 +83,13 @@ const JoinRidePopup = ({
 
             <div className="mt-4">
               <label className="text-black font-semibold">
-                Add a comment (optional):
+                Add a comment as the driver (optional):
               </label>
               <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
+                value={driverComment}
+                onChange={(e) => setDriverComment(e.target.value)}
                 className="textarea textarea-bordered w-full mt-2 bg-white text-black border-black"
-                placeholder="Any special requests or notes for the driver..."
+                placeholder="Any preferences or notes for the riders..."
                 rows={3}
               />
             </div>
@@ -94,17 +97,17 @@ const JoinRidePopup = ({
             <div className="card-actions justify-start gap-4 mt-4">
               <button
                 onClick={onClose}
-                disabled={isJoining}
+                disabled={isAccepting}
                 className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
-                onClick={handleJoin}
-                disabled={isJoining}
+                onClick={handleAccept}
+                disabled={isAccepting}
                 className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6 disabled:opacity-50"
               >
-                {isJoining ? "Joining..." : "Join"}
+                {isAccepting ? "Accepting..." : "Accept"}
               </button>
             </div>
           </div>
@@ -116,4 +119,4 @@ const JoinRidePopup = ({
   );
 };
 
-export default JoinRidePopup;
+export default AcceptRidePopup;

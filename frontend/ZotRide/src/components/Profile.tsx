@@ -9,6 +9,7 @@ const Profile = () => {
   const { logout } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [rotation, setRotation] = useState({ rotateX: 0, rotateY: 0 });
+  const [saveTriggered, setSaveTriggered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -25,10 +26,16 @@ const Profile = () => {
     setRotation({ rotateX: 0, rotateY: 0 });
   };
 
+  const handleSaveChanges = () => {
+    setSaveTriggered(true);
+    // Reset the trigger after a short delay
+    setTimeout(() => setSaveTriggered(false), 100);
+  };
+
   return (
     <div className="min-h-screen bg-white text-black px-[2rem] py-[4rem]">
       <div className="flex justify-center mb-8">
-        <ProfileLicenseCard displayed={false} />
+        <ProfileLicenseCard displayed={false} saveTriggered={saveTriggered} />
       </div>
       <div className="flex justify-center">
         <div className="card-actions justify-start gap-4 mt-2">
@@ -38,7 +45,10 @@ const Profile = () => {
           >
             Display
           </button>
-          <button className="h-[3rem] w-[12rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6">
+          <button
+            onClick={handleSaveChanges}
+            className="h-[3rem] w-[12rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6"
+          >
             Save Changes
           </button>
         </div>
@@ -85,7 +95,10 @@ const Profile = () => {
         </div>
       </div>
       <div className="flex justify-center mt-[8rem]">
-        <button className="h-[3rem] w-[12rem] btn btn-outline border-red-500 text-red-500 rounded-full hover:bg-red-100 hover:text-red-500 active:scale-100 px-6" onClick={logout}>
+        <button
+          className="h-[3rem] w-[12rem] btn btn-outline border-red-500 text-red-500 rounded-full hover:bg-red-100 hover:text-red-500 active:scale-100 px-6"
+          onClick={logout}
+        >
           Log Out
         </button>
       </div>

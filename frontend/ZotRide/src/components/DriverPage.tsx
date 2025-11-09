@@ -11,21 +11,21 @@ const DriverPage: React.FC = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchRiderRequests = async () => {
-      try {
-        setIsLoading(true);
-        const riderRequests = await rideAPI.getRiderRequests();
-        setRides(riderRequests);
-      } catch (err: any) {
-        console.error("Error fetching rider requests:", err);
-        setError(err.response?.data?.error || "Failed to load ride requests");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchRiderRequests();
   }, []);
+
+  const fetchRiderRequests = async () => {
+    try {
+      setIsLoading(true);
+      const riderRequests = await rideAPI.getRiderRequests();
+      setRides(riderRequests);
+    } catch (err: any) {
+      console.error("Error fetching rider requests:", err);
+      setError(err.response?.data?.error || "Failed to load ride requests");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Helper function to format date and time
   const formatDateTime = (isoString: string) => {
@@ -73,7 +73,9 @@ const DriverPage: React.FC = () => {
 
           {!isLoading && !error && rides.length === 0 && (
             <div className="flex justify-center items-center h-[32rem]">
-              <p className="text-gray-600 text-lg">No active ride requests available</p>
+              <p className="text-gray-600 text-lg">
+                No active ride requests available
+              </p>
             </div>
           )}
 
@@ -91,6 +93,7 @@ const DriverPage: React.FC = () => {
                     date={date}
                     riders={ride.max_riders}
                     cost={formatPriceOption(ride.price_option)}
+                    onRideAccepted={fetchRiderRequests}
                   />
                 );
               })}

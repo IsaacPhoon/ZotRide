@@ -34,7 +34,7 @@ const JoinRideCard = ({
   const [error, setError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
   const [isInActiveRide, setIsInActiveRide] = useState(false);
-  const [isCanceling, setIsCanceling] = useState(false);
+  const [isLeaveing, setIsLeaveing] = useState(false);
 
   // Determine if ride has a driver
   const hasDriver = driver && driver !== "Unknown Driver";
@@ -84,25 +84,25 @@ const JoinRideCard = ({
     setShowPopup(false);
   };
 
-  const handleCancel = async () => {
-    if (!window.confirm("Are you sure you want to cancel this ride?")) {
+  const handleLeave = async () => {
+    if (!window.confirm("Are you sure you want to leave this ride?")) {
       return;
     }
 
     try {
-      setIsCanceling(true);
-      await rideAPI.deleteRide(id);
+      setIsLeaveing(true);
+      await rideAPI.leaveRide(id);
       // Refresh the rides list
       if (onRideJoined) {
         onRideJoined();
       }
     } catch (err: any) {
-      console.error("Error canceling ride:", err);
+      console.error("Error leaving ride:", err);
       setError(
-        err.response?.data?.error || "Failed to cancel ride. Please try again."
+        err.response?.data?.error || "Failed to leave ride. Please try again."
       );
     } finally {
-      setIsCanceling(false);
+      setIsLeaveing(false);
     }
   };
 
@@ -123,14 +123,14 @@ const JoinRideCard = ({
           <p className="text-black">Ride Cost: {cost}</p>
           <div className="card-actions justify-start gap-4 mt-2">
             {isOwnRide ? (
-              // Show Cancel and See More for user's own ride
+              // Show Leave and See More for user's own ride
               <>
                 <button
-                  onClick={handleCancel}
-                  disabled={isCanceling}
+                  onClick={handleLeave}
+                  disabled={isLeaveing}
                   className="h-[2rem] w-[8rem] btn btn-outline border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white active:scale-100 px-6 disabled:opacity-50"
                 >
-                  {isCanceling ? "Canceling..." : "Cancel"}
+                  {isLeaveing ? "Leaving..." : "Leave"}
                 </button>
                 <button
                   onClick={handleSeeMore}

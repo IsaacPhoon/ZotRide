@@ -25,7 +25,14 @@ const Home = ({ setActivePage }: HomeProps) => {
       const activeRides = await rideAPI.getUserActiveRides();
       // Find the first ride without a driver (rider request)
       const rideRequest = activeRides.find((ride) => !ride.driver_id);
-      setActiveRideRequest(rideRequest || null);
+
+      // Enrich with driver and rider names if found
+      if (rideRequest) {
+        const enrichedRide = await rideAPI.enrichRideWithNames(rideRequest);
+        setActiveRideRequest(enrichedRide);
+      } else {
+        setActiveRideRequest(null);
+      }
     } catch (err) {
       console.error("Error fetching active ride request:", err);
       setActiveRideRequest(null);

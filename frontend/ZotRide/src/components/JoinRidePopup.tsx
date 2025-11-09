@@ -44,8 +44,20 @@ const JoinRidePopup = ({
       try {
         setIsLoadingRiders(true);
         const ridersData = await rideAPI.getRideRiders(id);
-        const riderNames = ridersData.map((rider) => rider.name);
-        setCurrentRiders(riderNames);
+        // Enrich rider data with names
+        const enrichedRiders = await Promise.all(
+          ridersData.map(async (rider) => {
+            try {
+              const userAPI = (await import("../services/api")).userAPI;
+              const user = await userAPI.getUserById(rider.user_id);
+              return user.name;
+            } catch (err) {
+              console.error(`Error fetching rider ${rider.user_id}:`, err);
+              return "Unknown";
+            }
+          })
+        );
+        setCurrentRiders(enrichedRiders);
       } catch (err) {
         console.error("Error fetching riders:", err);
         // Fall back to the riders prop if API call fails

@@ -4,6 +4,9 @@ import type { AxiosInstance, AxiosError } from 'axios';
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
+// Debug logging - set to true to log all API responses to console
+const ENABLE_API_LOGGING = true;
+
 // Create axios instance with /api prefix
 const api: AxiosInstance = axios.create({
   baseURL: `${API_BASE_URL}/api`,
@@ -26,8 +29,25 @@ api.interceptors.request.use(
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log all API responses if logging is enabled
+    if (ENABLE_API_LOGGING) {
+      console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+        status: response.status,
+        data: response.data,
+      });
+    }
+    return response;
+  },
   async (error: AxiosError) => {
+    // Log errors if logging is enabled
+    if (ENABLE_API_LOGGING) {
+      console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    }
     if (error.response?.status === 401) {
       // Token expired or invalid - clear auth state
       localStorage.removeItem('jwt_token');
@@ -370,6 +390,13 @@ export const rideAPI = {
     if (driverComment) {
       requestBody.driver_comment = driverComment;
     }
+    
+    if (ENABLE_API_LOGGING) {
+      console.log(`[API Request] POST /api/rides/${rideId}/join_driver`, {
+        body: requestBody,
+      });
+    }
+    
     const response = await api.post(`/rides/${rideId}/join_driver`, requestBody);
     return response.data;
   },
@@ -395,9 +422,80 @@ export const rideAPI = {
     return rides.filter(ride => ride.status === 'active');
   },
 
-  deleteRide: async (rideId: number): Promise<{ message: string }> => {
+  /**
+   * Leave a ride as a rider
+   */
+  leaveRide: async (rideId: number): Promise<{ message: string }> => {
     const response = await api.post(`/rides/${rideId}/leave`);
     return response.data;
+  },
+
+  /**
+   * Complete a ride (driver only)
+   */
+  completeRide: async (rideId: number): Promise<{ message: string; ride: Ride }> => {
+    const response = await api.post(`/rides/${rideId}/complete`);
+    return response.data;
+  },
+
+  /**
+   * Enrich ride data with driver and rider names
+   * This fetches user/driver information and adds it to the ride object
+   */
+  enrichRideWithNames: async (ride: Ride): Promise<Ride> => {
+    const enrichedRide = { ...ride };
+
+    // Fetch driver information if driver_id exists
+    if (ride.driver_id) {
+      try {
+        const driverData = await driverAPI.getDriverById(ride.driver_id);
+        const driverUser = await userAPI.getUserById(driverData.user_id);
+        enrichedRide.driver = {
+          id: driverUser.id,
+          name: driverUser.name,
+          email: driverUser.email,
+        };
+      } catch (err) {
+        console.error('Error fetching driver info:', err);
+      }
+    }
+
+    // Fetch rider information
+    if (ride.riders && ride.riders.length > 0) {
+      try {
+        const enrichedRiders = await Promise.all(
+          ride.riders.map(async (rider) => {
+            try {
+              const user = await userAPI.getUserById(rider.user_id);
+              return {
+                ...rider,
+                name: user.name,
+                email: user.email,
+              };
+            } catch (err) {
+              console.error(`Error fetching rider ${rider.user_id}:`, err);
+              return {
+                ...rider,
+                name: 'Unknown',
+                email: '',
+              };
+            }
+          })
+        );
+        enrichedRide.riders = enrichedRiders;
+      } catch (err) {
+        console.error('Error enriching riders:', err);
+      }
+    }
+
+    return enrichedRide;
+  },
+
+  /**
+   * Enrich multiple rides with driver and rider names
+   */
+  enrichRidesWithNames: async (rides: Ride[]): Promise<Ride[]> => {
+    return Promise.all(rides.map(ride => rideAPI.enrichRideWithNames(ride)));
   },
 };
 
@@ -472,6 +570,35 @@ export const driverAPI = {
       throw new Error('User is not a driver');
     }
     const response = await api.get(`/drivers/${currentUser.driver_id}`);
+    return response.data;
+  },
+
+  /**
+   * Get driver data by driver ID
+   */
+  getDriverById: async (driverId: number): Promise<DriverData> => {
+    const response = await api.get(`/drivers/${driverId}`);
+    return response.data;
+  },
+
+  /**
+   * Get all rides for a specific driver
+   */
+  getDriverRides: async (driverId: number, status?: 'active' | 'completed' | 'cancelled'): Promise<Ride[]> => {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    const response = await api.get(`/drivers/${driverId}/rides`, { params });
+    return response.data;
+  },
+};
+
+// User API Functions
+export const userAPI = {
+  /**
+   * Get user by ID
+   */
+  getUserById: async (userId: number): Promise<User> => {
+    const response = await api.get(`/users/${userId}`);
     return response.data;
   },
 };

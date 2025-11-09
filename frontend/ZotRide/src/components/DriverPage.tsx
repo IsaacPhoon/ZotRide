@@ -1,29 +1,80 @@
 import React, { useState, useEffect } from "react";
 import HostRideForm from "./HostRideForm";
 import RideRequestCard from "./RideRequestCard";
+import DriverRideCard from "./DriverRideCard";
 import testImage from "../assets/testimage2.avif";
-import { rideAPI } from "../services/api";
+import { rideAPI, authAPI, driverAPI } from "../services/api";
 import type { Ride } from "../services/api";
 
 const DriverPage: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);
+  const [currentRides, setCurrentRides] = useState<Ride[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCurrentRides, setIsLoadingCurrentRides] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetchRiderRequests();
+    fetchCurrentUserAndRides();
+    fetchCurrentDriverRides();
   }, []);
 
-  const fetchRiderRequests = async () => {
+  const fetchCurrentUserAndRides = async () => {
     try {
       setIsLoading(true);
+      // Get current user first
+      const user = await authAPI.getCurrentUser();
+
+      // Then fetch rider requests
       const riderRequests = await rideAPI.getRiderRequests();
-      setRides(riderRequests);
+
+      // Filter out rides where the current user is already a rider
+      const filteredRides = riderRequests.filter((ride) => {
+        // Check if current user is in the riders list
+        return !ride.riders?.some((rider) => rider.user_id === user.id);
+      });
+
+      // Enrich rides with rider names
+      const enrichedRides = await rideAPI.enrichRidesWithNames(filteredRides);
+
+      setRides(enrichedRides);
     } catch (err: any) {
       console.error("Error fetching rider requests:", err);
       setError(err.response?.data?.error || "Failed to load ride requests");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchRiderRequests = async () => {
+    await fetchCurrentUserAndRides();
+  };
+
+  const fetchCurrentDriverRides = async () => {
+    try {
+      setIsLoadingCurrentRides(true);
+      // Get current user's driver data
+      const user = await authAPI.getCurrentUser();
+
+      if (!user.driver_id) {
+        setCurrentRides([]);
+        return;
+      }
+
+      // Fetch rides for this driver
+      const driverRides = await driverAPI.getDriverRides(
+        user.driver_id,
+        "active"
+      );
+
+      // Enrich rides with rider names
+      const enrichedRides = await rideAPI.enrichRidesWithNames(driverRides);
+
+      setCurrentRides(enrichedRides);
+    } catch (err: any) {
+      console.error("Error fetching driver rides:", err);
+      setCurrentRides([]);
+    } finally {
+      setIsLoadingCurrentRides(false);
     }
   };
 
@@ -57,10 +108,46 @@ const DriverPage: React.FC = () => {
       <div className="min-h-screen bg-white text-black px-[2rem] py-[4rem]">
         <div className="mb-[8rem]">
           <h1 className="text-5xl font-bold mb-8">Current Ride</h1>
-          <div className="text-center text-gray-600 mt-12">
-            <p className="text-xl">No active rides available at the moment.</p>
-            <p className="mt-2">Check back later or host your own ride!</p>
-          </div>
+
+          {isLoadingCurrentRides && (
+            <div className="flex justify-center items-center h-[16rem]">
+              <p className="text-gray-600 text-lg">
+                Loading your current rides...
+              </p>
+            </div>
+          )}
+
+          {!isLoadingCurrentRides && currentRides.length === 0 && (
+            <div className="text-center text-gray-600 mt-12 mb-12">
+              <p className="text-xl">
+                No active rides available at the moment.
+              </p>
+              <p className="mt-2">Check back later or host your own ride!</p>
+            </div>
+          )}
+
+          {!isLoadingCurrentRides && currentRides.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {currentRides.map((ride) => {
+                const { time, date } = formatDateTime(ride.pickup_time);
+                return (
+                  <DriverRideCard
+                    key={ride.id}
+                    id={ride.id}
+                    pickup={ride.pickup_address}
+                    dropoff={ride.destination_address}
+                    time={time}
+                    date={date}
+                    riders={ride.max_riders}
+                    cost={formatPriceOption(ride.price_option)}
+                    ridersList={ride.riders?.map((r) => r.name) || []}
+                    onRideCompleted={fetchCurrentDriverRides}
+                  />
+                );
+              })}
+            </div>
+          )}
+
           <h1 className="text-5xl font-bold mb-8">Active Ride Requests</h1>
 
           {isLoading && (

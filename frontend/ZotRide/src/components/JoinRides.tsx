@@ -33,12 +33,16 @@ const JoinRides = () => {
       ]);
       // Combine both arrays
       const allRides = [...driverPosts, ...riderRequests];
+
+      // Enrich rides with driver and rider names
+      const enrichedRides = await rideAPI.enrichRidesWithNames(allRides);
+
       // Sort by pickup time (earliest first)
-      allRides.sort(
+      enrichedRides.sort(
         (a, b) =>
           new Date(a.pickup_time).getTime() - new Date(b.pickup_time).getTime()
       );
-      setRides(allRides);
+      setRides(enrichedRides);
       setError(null);
     } catch (err: any) {
       console.error("Error fetching rides:", err);

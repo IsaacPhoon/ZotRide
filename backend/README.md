@@ -112,6 +112,10 @@ Verify Google token and check if user exists.
 }
 ```
 
+**Error Responses:**
+- `400`: Invalid request data - Missing Google token
+- `401`: Invalid Google token or non-UCI email
+
 ---
 
 #### `POST /auth/google/register`
@@ -136,6 +140,10 @@ Complete registration for new users.
 }
 ```
 
+**Error Responses:**
+- `400`: Missing required fields (token, gender, preferred_contact), invalid gender value (must be 0, 1, or 2), or user already exists
+- `401`: Invalid Google token
+
 ---
 
 #### `GET /auth/verify`
@@ -150,6 +158,9 @@ Verify if current JWT token is valid.
   "user": { /* user data */ }
 }
 ```
+
+**Error Responses:**
+- `401`: Token is invalid or expired
 
 ---
 
@@ -172,6 +183,10 @@ Refresh an expired or soon-to-expire JWT token.
 }
 ```
 
+**Error Responses:**
+- `400`: Token is required
+- `401`: Invalid token format or user not found
+
 ---
 
 #### `GET /auth/me`
@@ -193,9 +208,38 @@ Get current authenticated user's information.
 }
 ```
 
+**Error Responses:**
+- `401`: Not authenticated
+
 ---
 
 ### User Routes
+
+#### `POST /users`
+**DEPRECATED**: Use `/api/auth/google/register` instead for user registration.
+
+This endpoint is kept for backward compatibility and testing purposes only.
+
+Create a new user.
+
+**Request Body:**
+```json
+{
+  "email": "user@example.edu",
+  "name": "John Doe",
+  "gender": 0,  // 0: Male, 1: Female, 2: Other
+  "preferred_contact": "email or phone",
+  "is_system_admin": false  // Optional, defaults to False
+}
+```
+
+**Response (201):** User created successfully with user data
+
+**Error Responses:**
+- `400`: Invalid request data, missing required fields, or non-UCI email
+- `409`: User with this email already exists
+
+---
 
 #### `GET /users`
 Get all users with pagination.
@@ -218,6 +262,9 @@ Get all users with pagination.
 ]
 ```
 
+**Error Responses:**
+- `401`: Not authenticated
+
 ---
 
 #### `GET /users/:user_id`
@@ -226,6 +273,10 @@ Get a specific user by ID.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** User object
+
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: User not found
 
 ---
 
@@ -245,6 +296,11 @@ Update user information. Users can only update their own profile (or admins can 
 
 **Response (200):** Updated user object
 
+**Error Responses:**
+- `401`: Not authenticated
+- `403`: Forbidden - trying to update another user's profile
+- `404`: User not found
+
 ---
 
 #### `DELETE /users/:user_id`
@@ -253,6 +309,11 @@ Delete a user account. Users can only delete their own account (or admins can de
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (204):** No content
+
+**Error Responses:**
+- `401`: Not authenticated
+- `403`: Forbidden - trying to delete another user's account
+- `404`: User not found
 
 ---
 
@@ -274,6 +335,10 @@ Get all organizations a user belongs to.
 ]
 ```
 
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: User not found
+
 ---
 
 #### `GET /users/:user_id/rides`
@@ -283,6 +348,10 @@ Get all rides a user has joined.
 
 **Response (200):** Array of ride objects with user's comment and join time
 
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: User not found
+
 ---
 
 #### `GET /users/:user_id/driver-data`
@@ -291,6 +360,10 @@ Get driver data for a specific user.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** Driver data object or 404 if user is not a driver
+
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: User not found or user is not a driver
 
 ---
 
@@ -324,6 +397,11 @@ Register as a driver. Creates driver data for the authenticated user.
 }
 ```
 
+**Error Responses:**
+- `400`: Missing required fields (license_image, vehicle_data, license_plate)
+- `401`: Not authenticated
+- `409`: Driver data already exists for this user
+
 ---
 
 #### `GET /drivers`
@@ -338,6 +416,9 @@ Get all drivers with optional filtering.
 
 **Response (200):** Array of driver objects
 
+**Error Responses:**
+- `401`: Not authenticated
+
 ---
 
 #### `GET /drivers/:driver_id`
@@ -346,6 +427,10 @@ Get a specific driver by ID.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** Driver object
+
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: Driver not found
 
 ---
 
@@ -363,7 +448,14 @@ Update driver information. Drivers can only update their own data (or admins can
 }
 ```
 
+**Note:** Approval status can only be changed via the approve endpoint.
+
 **Response (200):** Updated driver object
+
+**Error Responses:**
+- `401`: Not authenticated
+- `403`: Forbidden - trying to update another driver's data
+- `404`: Driver not found
 
 ---
 
@@ -373,6 +465,14 @@ Delete driver data. Drivers can only delete their own data (or admins can delete
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (204):** No content
+
+**Error Responses:**
+- `400`: Cannot delete driver with active rides
+- `401`: Not authenticated
+- `403`: Forbidden - trying to delete another driver's data
+- `404`: Driver not found
+
+**Note:** Deleting a driver will also delete all their reviews (cascade delete).
 
 ---
 
@@ -396,6 +496,12 @@ Delete driver data. Drivers can only delete their own data (or admins can delete
 }
 ```
 
+**Error Responses:**
+- `400`: Missing required field: approved
+- `401`: Not authenticated
+- `403`: User is not a system admin
+- `404`: Driver not found
+
 ---
 
 #### `GET /drivers/:driver_id/rides`
@@ -404,9 +510,13 @@ Get all rides hosted by a specific driver.
 **Headers:** `Authorization: Bearer <token>`
 
 **Query Parameters:**
-- `status` (optional): Filter by ride status (active/completed)
+- `status` (optional): Filter by ride status (active/completed/cancelled)
 
 **Response (200):** Array of ride objects
+
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: Driver not found
 
 ---
 
@@ -416,6 +526,10 @@ Get all rides hosted by a specific driver.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** Array of pending driver objects
+
+**Error Responses:**
+- `401`: Not authenticated
+- `403`: User is not a system admin
 
 ---
 
@@ -445,6 +559,12 @@ Create a new ride (driver post or rider request).
 
 **Response (201):** Created ride object (with current user added as rider if no driver_id)
 
+**Error Responses:**
+- `400`: Missing required fields (pickup_address, pickup_time, destination_address, price_option)
+- `401`: Not authenticated
+- `403`: Driver is not approved
+- `404`: Driver or organization not found
+
 ---
 
 #### `GET /rides`
@@ -461,6 +581,9 @@ Get all rides with optional filtering.
 
 **Response (200):** Array of ride objects
 
+**Error Responses:**
+- `401`: Not authenticated
+
 ---
 
 #### `GET /rides/:ride_id`
@@ -469,6 +592,10 @@ Get a specific ride by ID.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** Ride object
+
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: Ride not found
 
 ---
 
@@ -485,8 +612,8 @@ Update ride information.
   "destination_address": "321 Pine St",
   "max_riders": 3,
   "price_option": "gas",
-  "status": "active",
-  "driver_id": 2,
+  "status": "active",  // Options: 'active', 'completed', 'cancelled'
+  "driver_id": 2,  // Can be set to add a driver to a rider request
   "driver_comment": "Updated comment"
 }
 ```
@@ -495,14 +622,27 @@ Update ride information.
 
 **Response (200):** Updated ride object
 
+**Error Responses:**
+- `400`: Invalid request data
+- `401`: Not authenticated
+- `403`: Cannot update ride details after completion (only driver_comment allowed), or driver is not approved
+- `404`: Ride not found or driver not found
+
 ---
 
 #### `DELETE /rides/:ride_id`
-Delete a ride. Only ride creator or assigned driver can delete.
+Delete a ride. Only allowed if the current user is the only rider with no driver, or is a driver with no riders.
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (204):** No content
+
+**Error Responses:**
+- `401`: Not authenticated
+- `403`: Unauthorized - only rider or driver can delete if there are no other riders or drivers
+- `404`: Ride not found
+
+**Note:** Deleting a ride will also delete all associated reviews and rider associations.
 
 ---
 
@@ -519,9 +659,15 @@ Mark a ride as completed. Only the assigned driver can complete their ride.
 }
 ```
 
+**Error Responses:**
+- `400`: Cannot complete a ride without a driver
+- `401`: Not authenticated
+- `403`: Only the assigned driver can complete this ride, or ride already completed
+- `404`: Ride not found or driver not found
+
 ---
 
-#### `POST /rides/:ride_id/join`
+#### `POST /rides/:ride_id/join_rider`
 Join a ride as a rider.
 
 **Headers:** `Authorization: Bearer <token>`
@@ -541,6 +687,40 @@ Join a ride as a rider.
 }
 ```
 
+**Error Responses:**
+- `400`: Ride is full, user already joined, or ride is not active
+- `401`: Not authenticated
+- `403`: Driver cannot join their own ride as a rider
+- `404`: Ride not found
+
+---
+
+#### `POST /rides/:ride_id/join_driver`
+Accept a ride request as a driver (join a ride as the driver).
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body (optional):**
+```json
+{
+  "driver_comment": "Looking forward to driving!"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Successfully joined the ride as driver",
+  "ride": { /* ride data */ }
+}
+```
+
+**Error Responses:**
+- `400`: Ride already has a driver, ride is not active, or user is not registered as a driver
+- `401`: Not authenticated
+- `403`: Cannot accept your own ride request as a driver, or driver is not approved
+- `404`: Ride not found
+
 ---
 
 #### `POST /rides/:ride_id/leave`
@@ -555,6 +735,10 @@ Leave a ride as a rider.
   "ride": { /* ride data */ }
 }
 ```
+
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: Ride not found or user has not joined this ride
 
 ---
 
@@ -576,6 +760,10 @@ Get all riders for a specific ride.
 ]
 ```
 
+**Error Responses:**
+- `401`: Not authenticated
+- `404`: Ride not found
+
 ---
 
 #### `GET /rides/search`
@@ -592,6 +780,9 @@ Search for rides based on various criteria.
 
 **Response (200):** Array of matching ride objects
 
+**Error Responses:**
+- `401`: Not authenticated
+
 ---
 
 #### `GET /rides/rider-requests`
@@ -605,6 +796,9 @@ Get all rider requests (rides without a driver).
 
 **Response (200):** Array of rider request ride objects
 
+**Error Responses:**
+- `401`: Not authenticated
+
 ---
 
 #### `GET /rides/driver-posts`
@@ -617,6 +811,9 @@ Get all driver posts (rides with a driver).
 - `offset` (optional)
 
 **Response (200):** Array of driver post ride objects
+
+**Error Responses:**
+- `401`: Not authenticated
 
 ---
 
@@ -637,6 +834,11 @@ Create a new organization. The authenticated user becomes the owner.
 
 **Response (201):** Created organization object
 
+**Error Responses:**
+- `400`: Missing required field: name
+- `401`: Authentication required
+- `409`: Organization with this name already exists
+
 ---
 
 #### `GET /organizations`
@@ -650,6 +852,9 @@ Get all organizations.
 
 **Response (200):** Array of organization objects
 
+**Error Responses:**
+- `401`: Authentication required
+
 ---
 
 #### `GET /organizations/:org_id`
@@ -658,6 +863,10 @@ Get a specific organization by ID.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** Organization object
+
+**Error Responses:**
+- `401`: Authentication required
+- `404`: Organization not found
 
 ---
 
@@ -676,6 +885,11 @@ Update organization information. Only owner or admin can update.
 
 **Response (200):** Updated organization object
 
+**Error Responses:**
+- `401`: Authentication required
+- `403`: User is not authorized to update this organization
+- `404`: Organization not found
+
 ---
 
 #### `DELETE /organizations/:org_id`
@@ -684,6 +898,11 @@ Delete an organization. Only the owner can delete.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (204):** No content
+
+**Error Responses:**
+- `401`: Authentication required
+- `403`: User is not the owner of this organization
+- `404`: Organization not found
 
 ---
 
@@ -706,6 +925,10 @@ Get all members of an organization with their roles.
 ]
 ```
 
+**Error Responses:**
+- `401`: Authentication required
+- `404`: Organization not found
+
 ---
 
 #### `POST /organizations/:org_id/members`
@@ -722,13 +945,19 @@ Add a member to an organization. Only owner or admin can add members.
 }
 ```
 
-**Response (201):**
+**Response (200):**
 ```json
 {
-  "message": "Member added successfully",
-  "member": { /* member data */ }
+  "message": "Member added successfully"
 }
 ```
+
+**Error Responses:**
+- `400`: Missing required field: user_id
+- `401`: Authentication required
+- `403`: User is not authorized to add members
+- `404`: Organization or user not found
+- `409`: User is already a member of this organization
 
 ---
 
@@ -737,12 +966,13 @@ Remove a member from an organization. Only owner or admin can remove members.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Response (200):**
-```json
-{
-  "message": "Member removed successfully"
-}
-```
+**Response (204):** No content
+
+**Error Responses:**
+- `400`: Cannot remove the organization owner
+- `401`: Authentication required
+- `403`: User is not authorized to remove members
+- `404`: Organization or membership not found
 
 ---
 
@@ -761,13 +991,13 @@ Update a member's role in an organization. Only owner or admin can update roles.
 
 **Note:** Only owners can grant admin privileges.
 
-**Response (200):**
-```json
-{
-  "message": "Member role updated successfully",
-  "member": { /* updated member data */ }
-}
-```
+**Response (200):** Updated member data
+
+**Error Responses:**
+- `400`: Cannot modify owner status
+- `401`: Authentication required
+- `403`: User is not authorized to update member roles, or only owner can grant admin privileges
+- `404`: Organization or member not found
 
 ---
 
@@ -777,6 +1007,10 @@ Get all approved drivers in an organization.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** Array of driver objects
+
+**Error Responses:**
+- `401`: Authentication required
+- `404`: Organization not found
 
 ---
 
@@ -789,6 +1023,10 @@ Get all rides associated with an organization.
 - `status` (optional): Filter by ride status
 
 **Response (200):** Array of ride objects
+
+**Error Responses:**
+- `401`: Authentication required
+- `404`: Organization not found
 
 ---
 
@@ -804,16 +1042,24 @@ Create a review for a driver after completing a ride.
 {
   "driver_id": 1,
   "ride_id": 1,
-  "stars": 4.5,  // 0.5 to 5.0 in 0.5 increments
-  "comment": "Great driver!"  // Optional
+  "stars": 4.5,  // 0.5 to 5.0
+  "comment": "Great driver!"
 }
 ```
 
 **Notes:**
 - Can only review after ride is completed
 - One review per ride per user
+- Author is automatically set from authenticated user
 
 **Response (201):** Created review object
+
+**Error Responses:**
+- `400`: Missing required fields (driver_id, ride_id, stars, comment), stars must be between 0.5 and 5, or ride was not hosted by the specified driver
+- `401`: Authentication required
+- `403`: Cannot review a ride that is not completed, or must have been a rider on this ride to review it
+- `404`: Driver or ride not found
+- `409`: You have already reviewed this ride
 
 ---
 
@@ -832,6 +1078,9 @@ Get all reviews with optional filtering.
 
 **Response (200):** Array of review objects
 
+**Error Responses:**
+- `401`: Authentication required
+
 ---
 
 #### `GET /reviews/:review_id`
@@ -840,6 +1089,10 @@ Get a specific review by ID.
 **Headers:** `Authorization: Bearer <token>`
 
 **Response (200):** Review object
+
+**Error Responses:**
+- `401`: Authentication required
+- `404`: Review not found
 
 ---
 
@@ -858,6 +1111,12 @@ Update a review. Only the author can update their own review.
 
 **Response (200):** Updated review object
 
+**Error Responses:**
+- `400`: Stars must be between 0.5 and 5
+- `401`: Authentication required
+- `403`: Not authorized to update this review
+- `404`: Review not found
+
 ---
 
 #### `DELETE /reviews/:review_id`
@@ -865,7 +1124,17 @@ Delete a review. Only the author can delete their own review.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Response (204):** No content
+**Response (200):**
+```json
+{
+  "message": "Review deleted successfully"
+}
+```
+
+**Error Responses:**
+- `401`: Authentication required
+- `403`: Not authorized to delete this review
+- `404`: Review not found
 
 ---
 
@@ -873,6 +1142,11 @@ Delete a review. Only the author can delete their own review.
 Get all reviews for a specific driver with average rating.
 
 **Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+- `limit` (optional): Maximum number of reviews to return
+- `offset` (optional): Number of reviews to skip
+- `min_stars` (optional): Filter by minimum star rating
 
 **Response (200):**
 ```json
@@ -884,6 +1158,10 @@ Get all reviews for a specific driver with average rating.
 }
 ```
 
+**Error Responses:**
+- `401`: Authentication required
+- `404`: Driver not found
+
 ---
 
 #### `GET /rides/:ride_id/reviews`
@@ -891,7 +1169,18 @@ Get all reviews for a specific ride.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Response (200):** Array of review objects
+**Response (200):**
+```json
+{
+  "ride_id": 1,
+  "total_reviews": 3,
+  "reviews": [ /* array of review objects */ ]
+}
+```
+
+**Error Responses:**
+- `401`: Authentication required
+- `404`: Ride not found
 
 ---
 
@@ -900,7 +1189,22 @@ Get all reviews authored by a specific user.
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Response (200):** Array of review objects
+**Query Parameters:**
+- `limit` (optional): Maximum number of reviews to return
+- `offset` (optional): Number of reviews to skip
+
+**Response (200):**
+```json
+{
+  "user_id": 1,
+  "total_reviews": 5,
+  "reviews": [ /* array of review objects */ ]
+}
+```
+
+**Error Responses:**
+- `401`: Authentication required
+- `404`: User not found
 
 ---
 

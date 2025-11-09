@@ -228,7 +228,7 @@ def update_ride(ride_id, current_user):
             if any(key in data for key in ['pickup_address', 'pickup_time', 'destination_address', 
                                             'max_riders', 'price_option', 'driver_id']):
                 return jsonify({'error': 'Cannot update ride details after completion. Only driver_comment can be updated.'}), 403
-            
+
             if 'driver_comment' in data:
                 ride.driver_comment = data['driver_comment']
         else:
@@ -283,7 +283,7 @@ def delete_ride(ride_id, current_user):
     Returns:
         204: Ride deleted successfully
         404: Ride not found
-        403: Unauthorized - only ride creator or driver can delete
+        403: Unauthorized - only rider or driver can delete if there are no other riders and drivers
 
     Note: Deleting a ride will also delete all associated reviews and rider associations.
     """
@@ -292,6 +292,15 @@ def delete_ride(ride_id, current_user):
 
         if not ride:
             return jsonify({'error': 'Ride not found'}), 404
+
+        authorized_to_delete: bool = False
+        if current_user.id == ride.driver_id and len(ride.riders) == 0: # if current_user is driver and there's no riders
+            authorized_to_delete = True
+        elif len(ride.riders) == 1 and ride.riders[0].user_id == current_user.id: # if current_user is the only rider and there's no driver
+            authorized_to_delete = True
+
+        if not authorized_to_delete:
+            return jsonify({'error': 'Unauthorized - only rider or driver can delete if there are no other riders or drivers'}), 403
 
         db.session.delete(ride)
         db.session.commit()
@@ -359,9 +368,9 @@ def complete_ride(ride_id, current_user):
         return jsonify({'error': str(e)}), 400
 
 
-@ride_bp.route('/rides/<int:ride_id>/join', methods=['POST'])
+@ride_bp.route('/rides/<int:ride_id>/join_rider', methods=['POST'])
 @token_required
-def join_ride(ride_id, current_user):
+def join_ride_rider(ride_id, current_user):
     """
     Join a ride as a rider.
 
@@ -430,6 +439,89 @@ def join_ride(ride_id, current_user):
 
         return jsonify({
             'message': 'Successfully joined the ride',
+            'ride': ride.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
+
+@ride_bp.route('/rides/<int:ride_id>/join_driver', methods=['POST'])
+@token_required
+def join_ride_driver(ride_id, current_user):
+    """
+    Join a ride as a driver (accept a rider request).
+
+    Authentication: Required
+    Headers:
+        Authorization: Bearer <JWT token>
+
+    Args:
+        ride_id: The ID of the ride to join
+
+    Expected JSON body:
+    {
+        "driver_comment": "Looking forward to the ride!"  # Optional
+    }
+
+    Returns:
+        200: Successfully joined the ride as driver
+        400: Ride has driver already, user is not an approved driver, or invalid request
+        404: Ride not found
+        403: Cannot accept your own ride request as a driver
+    """
+    try:
+        data = request.get_json() or {}
+
+        # Get ride
+        ride = db.session.get(Ride, ride_id)
+        if not ride:
+            return jsonify({'error': 'Ride not found'}), 404
+
+        # Check if ride is active
+        if ride.status != 'active':
+            return jsonify({'error': 'Cannot join a ride that is not active'}), 400
+
+        # Check if ride already has a driver
+        if ride.driver_id is not None:
+            return jsonify({'error': 'Ride already has a driver'}), 400
+
+        # Check if user is an approved driver
+        driver_data = db.session.execute(
+            select(DriverData).where(DriverData.user_id == current_user.id)
+        ).scalar_one_or_none()
+
+        if not driver_data:
+            return jsonify({'error': 'User is not registered as a driver'}), 400
+        
+        if not driver_data.is_approved:
+            return jsonify({'error': 'Driver is not approved'}), 403
+
+        # Check if user is already a rider on this ride (the original requester)
+        existing_rider = db.session.execute(
+            select(UserRideData).where(
+                and_(
+                    UserRideData.user_id == current_user.id,
+                    UserRideData.ride_id == ride_id
+                )
+            )
+        ).scalar_one_or_none()
+
+        if existing_rider:
+            return jsonify({'error': 'Cannot accept your own ride request as a driver'}), 403
+
+        # Assign the driver to the ride
+        ride.driver_id = driver_data.id
+
+        # Add driver comment if provided
+        if 'driver_comment' in data:
+            ride.driver_comment = data['driver_comment']
+
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Successfully joined the ride as driver',
             'ride': ride.to_dict()
         }), 200
 

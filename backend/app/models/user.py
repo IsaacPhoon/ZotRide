@@ -45,7 +45,7 @@ class User(db.Model):
             'name': self.name,
             'gender': self.gender,
             'preferred_contact': self.preferred_contact,
-            'is_driver': self.driver_data is not None,
+            'is_driver': self.driver_data is not None and self.driver_data.is_approved,
             'driver_id': self.driver_data.id if self.driver_data else None,
             'total_reviews_authored': len(self.ratings_authored)
         }

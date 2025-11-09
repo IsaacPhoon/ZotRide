@@ -76,6 +76,41 @@ export interface RegisterResponse {
   is_admin: boolean;
 }
 
+// Organization Types
+export interface Organization {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationWithMembers extends Organization {
+  member_count: number;
+}
+
+export interface OrganizationMember {
+  user_id: number;
+  name: string;
+  email: string;
+  is_owner: boolean;
+  is_admin: boolean;
+  is_driver: boolean;
+}
+
+export interface CreateOrganizationRequest {
+  name: string;
+  description?: string;
+}
+
+export interface CreateOrganizationResponse {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Token Management (using localStorage)
 export const tokenManager = {
   getToken: (): string | null => localStorage.getItem('jwt_token'),
@@ -159,6 +194,43 @@ export const authAPI = {
    */
   getCurrentUser: async (): Promise<User> => {
     const response = await api.get('/auth/me');
+    return response.data;
+  },
+};
+
+// Organization API Functions
+export const organizationAPI = {
+  /**
+   * Create a new organization
+   */
+  createOrganization: async (
+    name: string,
+    description?: string
+  ): Promise<CreateOrganizationResponse> => {
+    const response = await api.post<CreateOrganizationResponse>('/organizations', {
+      name,
+      description,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get all organizations
+   */
+  getAllOrganizations: async (limit?: number, offset?: number): Promise<Organization[]> => {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    
+    const response = await api.get<Organization[]>('/organizations', { params });
+    return response.data;
+  },
+
+  /**
+   * Get members of an organization
+   */
+  getOrganizationMembers: async (orgId: number): Promise<OrganizationMember[]> => {
+    const response = await api.get<OrganizationMember[]>(`/organizations/${orgId}/members`);
     return response.data;
   },
 };

@@ -366,15 +366,12 @@ export const rideAPI = {
    * Accept a ride request as a driver (assign yourself as the driver)
    */
   acceptRide: async (rideId: number, driverComment?: string): Promise<{ message: string; ride: Ride }> => {
-    const currentUser = await authAPI.getCurrentUser();
-    if (!currentUser.driver_id) {
-      throw new Error('You must be an approved driver to accept rides');
+    const requestBody: { driver_comment?: string } = {};
+    if (driverComment) {
+      requestBody.driver_comment = driverComment;
     }
-    const response = await api.put(`/rides/${rideId}`, {
-      driver_id: currentUser.driver_id,
-      driver_comment: driverComment,
-    });
-    return { message: 'Ride accepted successfully', ride: response.data };
+    const response = await api.post(`/rides/${rideId}/join_driver`, requestBody);
+    return response.data;
   },
 
   /**
@@ -396,6 +393,11 @@ export const rideAPI = {
     const response = await api.get(`/users/${currentUser.id}/rides`);
     const rides: Ride[] = response.data;
     return rides.filter(ride => ride.status === 'active');
+  },
+
+  deleteRide: async (rideId: number): Promise<{ message: string }> => {
+    const response = await api.post(`/rides/${rideId}/leave`);
+    return response.data;
   },
 };
 

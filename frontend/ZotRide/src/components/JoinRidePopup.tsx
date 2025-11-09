@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { rideAPI } from "../services/api";
 import ErrorModal from "./ErrorModal";
 
@@ -32,6 +32,31 @@ const JoinRidePopup = ({
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [comment, setComment] = useState("");
+  const [currentRiders, setCurrentRiders] = useState<string[]>(riders);
+  const [isLoadingRiders, setIsLoadingRiders] = useState(false);
+
+  // Determine if ride has a driver
+  const hasDriver = driver && driver !== "Unknown Driver";
+
+  // Fetch current riders when popup opens
+  useEffect(() => {
+    const fetchRiders = async () => {
+      try {
+        setIsLoadingRiders(true);
+        const ridersData = await rideAPI.getRideRiders(id);
+        const riderNames = ridersData.map((rider) => rider.name);
+        setCurrentRiders(riderNames);
+      } catch (err) {
+        console.error("Error fetching riders:", err);
+        // Fall back to the riders prop if API call fails
+        setCurrentRiders(riders);
+      } finally {
+        setIsLoadingRiders(false);
+      }
+    };
+
+    fetchRiders();
+  }, [id, riders]);
 
   const handleJoin = async () => {
     if (isInActiveRide) {
@@ -76,11 +101,15 @@ const JoinRidePopup = ({
             <div className="space-y-2 text-black">
               <p className="text-black">{date}</p>
               <p className="text-black">
-                <b>Driver:</b> {driver}
+                <b>Driver:</b> {hasDriver ? driver : "No Driver Yet"}
               </p>
               <p className="text-black">
                 <b>Current Riders:</b>{" "}
-                {riders.length > 0 ? riders.join(", ") : "None yet"}
+                {isLoadingRiders
+                  ? "Loading..."
+                  : currentRiders.length > 0
+                  ? currentRiders.join(", ")
+                  : "None yet"}
               </p>
               <p className="text-black">
                 <b>Ride Cost:</b> {cost}

@@ -1,25 +1,47 @@
 import { useState, useEffect } from "react";
 import JoinRideCard from "./JoinRideCard";
 import ErrorModal from "./ErrorModal";
-import { rideAPI, type Ride } from "../services/api";
+import { rideAPI, authAPI, type Ride } from "../services/api";
 
 const JoinRides = () => {
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchDriverPosts();
+    fetchCurrentUser();
+    fetchAllRides();
   }, []);
 
-  const fetchDriverPosts = async () => {
+  const fetchCurrentUser = async () => {
+    try {
+      const user = await authAPI.getCurrentUser();
+      setCurrentUserId(user.id);
+    } catch (err) {
+      console.error("Error fetching current user:", err);
+    }
+  };
+
+  const fetchAllRides = async () => {
     try {
       setLoading(true);
-      const data = await rideAPI.getDriverPosts();
-      setRides(data);
+      // Fetch both driver posts and rider requests
+      const [driverPosts, riderRequests] = await Promise.all([
+        rideAPI.getDriverPosts(),
+        rideAPI.getRiderRequests(),
+      ]);
+      // Combine both arrays
+      const allRides = [...driverPosts, ...riderRequests];
+      // Sort by pickup time (earliest first)
+      allRides.sort(
+        (a, b) =>
+          new Date(a.pickup_time).getTime() - new Date(b.pickup_time).getTime()
+      );
+      setRides(allRides);
       setError(null);
     } catch (err: any) {
-      console.error("Error fetching driver posts:", err);
+      console.error("Error fetching rides:", err);
       setError(
         err.response?.data?.error || "Failed to load rides. Please try again."
       );
@@ -81,25 +103,38 @@ const JoinRides = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-[32rem] overflow-y-auto pr-4">
-            {rides.map((ride) => (
-              <JoinRideCard
-                key={ride.id}
-                id={ride.id}
-                pickup={ride.pickup_address}
-                dropoff={ride.destination_address}
-                time={formatTime(ride.pickup_time)}
-                date={formatDate(ride.pickup_time)}
-                riders={
-                  ride.available_seats !== undefined
-                    ? ride.max_riders - ride.available_seats
-                    : 0
-                }
-                cost={formatCost(ride.price_option)}
-                driver={ride.driver?.name}
-                ridersList={ride.riders?.map((r) => r.name) || []}
-                onRideJoined={fetchDriverPosts}
-              />
-            ))}
+            {rides.map((ride) => {
+              // Check if current user owns this ride
+              const isOwnRide =
+                currentUserId &&
+                // User is the driver
+                (ride.driver_id === currentUserId ||
+                  // User created the rider request (is the only rider and no driver)
+                  (!ride.driver_id &&
+                    ride.riders?.length === 1 &&
+                    ride.riders[0].user_id === currentUserId));
+
+              return (
+                <JoinRideCard
+                  key={ride.id}
+                  id={ride.id}
+                  pickup={ride.pickup_address}
+                  dropoff={ride.destination_address}
+                  time={formatTime(ride.pickup_time)}
+                  date={formatDate(ride.pickup_time)}
+                  riders={
+                    ride.available_seats !== undefined
+                      ? ride.max_riders - ride.available_seats
+                      : 0
+                  }
+                  cost={formatCost(ride.price_option)}
+                  driver={ride.driver?.name}
+                  ridersList={ride.riders?.map((r) => r.name) || []}
+                  onRideJoined={fetchAllRides}
+                  isOwnRide={!!isOwnRide}
+                />
+              );
+            })}
           </div>
         )}
       </div>

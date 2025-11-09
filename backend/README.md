@@ -404,7 +404,7 @@ Get all rides hosted by a specific driver.
 **Headers:** `Authorization: Bearer <token>`
 
 **Query Parameters:**
-- `status` (optional): Filter by ride status (active/completed/cancelled)
+- `status` (optional): Filter by ride status (active/completed)
 
 **Response (200):** Array of ride objects
 
@@ -424,6 +424,8 @@ Get all rides hosted by a specific driver.
 #### `POST /rides`
 Create a new ride (driver post or rider request).
 
+**IMPORTANT:** If `driver_id` is not provided (rider request), the current authenticated user is automatically added as a rider to the newly created ride.
+
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
@@ -432,15 +434,16 @@ Create a new ride (driver post or rider request).
   "pickup_address": "123 Main St",
   "pickup_time": "2025-01-15T10:00:00",
   "destination_address": "456 Elm St",
-  "max_riders": 4,
+  "max_riders": 4,  // Optional - defaults to 4
   "price_option": "free",  // Options: 'free', 'gas', 'gas with fee'
-  "driver_id": 1,  // Optional - if provided, this is a driver post
+  "driver_id": 1,  // Optional - if null, current user is added as rider
   "organization_id": 1,  // Optional
-  "driver_comment": "I prefer quiet passengers"  // Optional
+  "driver_comment": "I prefer quiet passengers" , // Optional - only for driver posts
+  "rider_comment": "I am bringing snacks!" // Optional - only for rider requests
 }
 ```
 
-**Response (201):** Created ride object
+**Response (201):** Created ride object (with current user added as rider if no driver_id)
 
 ---
 
@@ -450,7 +453,7 @@ Get all rides with optional filtering.
 **Headers:** `Authorization: Bearer <token>`
 
 **Query Parameters:**
-- `status` (optional): active/completed/cancelled
+- `status` (optional): active/completed
 - `has_driver` (optional): true/false
 - `organization_id` (optional): Filter by organization; if not provided, excludes organization rides
 - `limit` (optional): Maximum number to return
@@ -930,7 +933,7 @@ Get all reviews authored by a specific user.
 - `destination_address`: String
 - `max_riders`: Integer (Default: 4)
 - `price_option`: String (free/gas/gas with fee)
-- `status`: String (active/completed/cancelled)
+- `status`: String (active/completed)
 - `driver_comment`: String (Optional)
 - `driver_id`: Integer (Foreign Key, Optional)
 - `organization_id`: Integer (Foreign Key, Optional)

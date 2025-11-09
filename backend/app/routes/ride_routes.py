@@ -14,6 +14,9 @@ def create_ride(current_user):
     """
     Create a new ride (either a driver post or rider request).
 
+    IMPORTANT: If driver_id is not provided (rider request), the current user
+    is automatically added as a rider to the newly created ride.
+
     Authentication: Required
     Headers:
         Authorization: Bearer <JWT token>
@@ -23,16 +26,18 @@ def create_ride(current_user):
         "pickup_address": "123 Main St",
         "pickup_time": "2025-01-15T10:00:00",
         "destination_address": "456 Elm St",
-        "max_riders": 4,
+        "max_riders": 4,  # Optional - defaults to 4
         "price_option": "free",  # Options: 'free', 'gas', 'gas with fee'
-        "driver_id": 1,  # Optional - if provided, this is a driver post; if null, this is a rider request
+        "driver_id": 1,  # Optional - if provided, this is a driver post; if null, current user is added as rider
         "organization_id": 1,  # Optional - if this ride is for an organization
-        "driver_comment": "I prefer quiet passengers"  # Optional
+        "driver_comment": "I prefer quiet passengers",  # Optional - only for driver posts
+        "rider_comment": "I am bringing snacks!"  # Optional - only for rider requests
     }
 
     Returns:
-        201: Ride created successfully
+        201: Ride created successfully (with current user added as rider if no driver_id)
         400: Invalid request data or missing required fields
+        401: Not authenticated
         404: Driver or organization not found
         403: Driver is not approved
     """
@@ -40,7 +45,7 @@ def create_ride(current_user):
         data = request.get_json()
 
         # Validate required fields
-        required_fields = ['pickup_address', 'pickup_time', 'destination_address', 'max_riders', 'price_option']
+        required_fields = ['pickup_address', 'pickup_time', 'destination_address', 'price_option']
         if not all(field in data for field in required_fields):
             return jsonify({'error': 'Missing required fields'}), 400
 
@@ -66,7 +71,7 @@ def create_ride(current_user):
             pickup_address=data['pickup_address'],
             pickup_time=pickup_time,
             destination_address=data['destination_address'],
-            max_riders=data['max_riders'],
+            max_riders=data.get('max_riders', 4),  # Default to 4 if not provided
             price_option=data['price_option'],
             driver_id=data.get('driver_id'),
             organization_id=data.get('organization_id'),
@@ -75,6 +80,16 @@ def create_ride(current_user):
 
         db.session.add(ride)
         db.session.commit()
+
+        # If no driver_id, this is a rider request - automatically add current user as a rider
+        if not data.get('driver_id'):
+            user_ride_data = UserRideData(
+                user_id=current_user.id,
+                ride_id=ride.id,
+                user_comment=data.get('rider_comment', None)
+            )
+            db.session.add(user_ride_data)
+            db.session.commit()
 
         return jsonify(ride.to_dict()), 201
 
@@ -94,7 +109,7 @@ def get_rides(current_user):
         Authorization: Bearer <JWT token>
 
     Query parameters:
-        - status: Filter by status (active/completed/cancelled) (optional)
+        - status: Filter by status (active/completed) (optional)
         - has_driver: Filter rides with/without driver (true/false) (optional)
         - organization_id: Filter by organization (optional)
         - limit: Maximum number of rides to return (optional)

@@ -18,14 +18,6 @@ const ClubJoinRides = ({
   // Fetch organization rides on mount and when refreshTrigger changes
   useEffect(() => {
     fetchOrganizationRides();
-
-    // Auto-refresh club rides every 4 seconds
-    const intervalId = setInterval(() => {
-      fetchOrganizationRides();
-    }, 4000); // 4 seconds
-
-    // Cleanup interval on unmount
-    return () => clearInterval(intervalId);
   }, [organizationId, refreshTrigger]);
 
   const fetchOrganizationRides = async () => {

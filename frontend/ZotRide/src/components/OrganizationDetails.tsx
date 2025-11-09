@@ -51,16 +51,6 @@ const OrganizationDetails = ({
     if (showMembers && members.length === 0) {
       fetchMembers();
     }
-
-    // Auto-refresh members list every 7.5 seconds when visible
-    if (showMembers) {
-      const intervalId = setInterval(() => {
-        fetchMembers();
-      }, 7500); // 7.5 seconds
-
-      // Cleanup interval on unmount or when members list is hidden
-      return () => clearInterval(intervalId);
-    }
   }, [showMembers]);
 
   const fetchMembers = async () => {

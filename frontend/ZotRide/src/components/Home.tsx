@@ -20,14 +20,6 @@ const Home = ({ setActivePage }: HomeProps) => {
 
   useEffect(() => {
     fetchUserActiveRideRequest();
-
-    // Auto-refresh active ride every 5 seconds
-    const intervalId = setInterval(() => {
-      fetchUserActiveRideRequest();
-    }, 5000); // 5 seconds
-
-    // Cleanup interval on unmount
-    return () => clearInterval(intervalId);
   }, []);
 
   const fetchUserActiveRideRequest = async () => {

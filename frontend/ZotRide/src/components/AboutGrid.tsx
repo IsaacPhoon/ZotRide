@@ -41,7 +41,11 @@ const AboutGrid: React.FC = () => {
                 Don't have a car? Arrange a ride with ZotRide!
               </h2>
               <p className="text-xl text-gray-600">
-                This is a text area. Write some cool stuff here
+                Browse available rides from fellow Anteaters, or post your own
+                ride request. Enter your pickup and destination, choose your
+                preferred time, and let drivers come to you. Join rides
+                instantly and split costs with other riders heading the same
+                way!
               </p>
             </motion.div>
             <motion.figure className="lg:mr-auto" variants={fadeInLeft}>
@@ -67,7 +71,11 @@ const AboutGrid: React.FC = () => {
                 Club needs ride planning? We've got you covered!
               </h2>
               <p className="text-xl text-gray-600">
-                This is a text area. Write some cool stuff here
+                Create or join student organizations and coordinate group rides
+                effortlessly. Use access codes to manage your club's private
+                ride network, authorize trusted drivers, and keep everyone
+                connected. Perfect for hackathons, events, and regular club
+                activities!
               </p>
             </motion.div>
             <motion.figure className="lg:ml-auto" variants={fadeInRight}>
@@ -93,7 +101,10 @@ const AboutGrid: React.FC = () => {
                 Low on Money? Make some quick cash!
               </h2>
               <p className="text-xl text-gray-600">
-                This is a text area. Write some cool stuff here
+                Become a verified ZotDriver and turn your daily commute into
+                income. Accept ride requests, host your own rides, and choose
+                between free rides, gas money, or earn extra fees. Upload your
+                license, set your schedule, and start driving on your own terms!
               </p>
             </motion.div>
             <motion.figure className="lg:mr-auto" variants={fadeInLeft}>

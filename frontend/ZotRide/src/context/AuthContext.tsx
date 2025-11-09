@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { authAPI, tokenManager } from '../services/api';
-import type { User } from '../services/api';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
+import { authAPI, tokenManager } from "../services/api";
+import type { User } from "../services/api";
 
 interface AuthContextType {
   user: User | null;
@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (token: string, user: User) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,7 +18,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
@@ -71,9 +72,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(updatedUser);
       tokenManager.setUser(updatedUser);
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      console.error("Failed to refresh user:", error);
       logout();
     }
+  };
+
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    tokenManager.setUser(updatedUser);
   };
 
   const value: AuthContextType = {
@@ -83,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     refreshUser,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminPanel from "./AdminPanel";
 import OrganizationFunctions from "./OrganizationFunctions";
-import JoinRides from "./JoinRides";
+import ClubJoinRides from "./ClubJoinRides";
 import { organizationAPI, type OrganizationMember } from "../services/api";
 
 interface OrganizationDetailsProps {
@@ -144,10 +144,10 @@ const OrganizationDetails = ({
       </div>
 
       {/* Organization Functions */}
-      <OrganizationFunctions />
+      <OrganizationFunctions organizationId={organizationId} />
 
-      {/* Join Rides */}
-      <JoinRides />
+      {/* Club Join Rides */}
+      <ClubJoinRides organizationId={organizationId} />
     </div>
   );
 };

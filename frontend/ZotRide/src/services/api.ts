@@ -396,7 +396,7 @@ export const rideAPI = {
   },
 
   deleteRide: async (rideId: number): Promise<{ message: string }> => {
-    const response = await api.delete(`/rides/${rideId}`);
+    const response = await api.post(`/rides/${rideId}/leave`);
     return response.data;
   },
 };

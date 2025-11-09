@@ -109,7 +109,9 @@ const OrganizationDetails = ({
         >
           ← Back to Organizations
         </button>
-        <h1 className="text-5xl font-bold mb-8">{organizationName}</h1>
+        <h1 className="text-5xl font-bold mb-8 text-center">
+          {organizationName}
+        </h1>
       </div>
 
       {/* Loading State for Organization */}

@@ -77,7 +77,7 @@ const AcceptRidePopup = ({
                 {comments.length > 0 ? comments.join(", ") : "None yet"}
               </p>
               <p className="text-black">
-                <b>Ride Cost:</b> {cost}
+                <b>Ride Pay:</b> {cost}
               </p>
             </div>
 

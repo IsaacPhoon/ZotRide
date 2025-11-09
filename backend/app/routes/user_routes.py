@@ -6,6 +6,9 @@ from app.auth_utils import token_required, admin_required
 
 user_bp = Blueprint('user', __name__)
 
+#WARNING#####################################################################################
+# Delete is_system_admin property from create_user
+#WARNING#####################################################################################
 
 @user_bp.route('/users', methods=['POST'])
 def create_user():
@@ -22,7 +25,7 @@ def create_user():
         "name": "John Doe",
         "gender": 0,  # 0: Male, 1: Female, 2: Other
         "preferred_contact": "email or phone",
-        "is_system_admin": false  # Optional, defaults to False
+        "is_system_admin": false  # Optional, defaults to False 
     }
 
     Returns:

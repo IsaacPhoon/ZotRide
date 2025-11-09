@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import AdminPanel from "./AdminPanel";
 import OrganizationFunctions from "./OrganizationFunctions";
 import ClubJoinRides from "./ClubJoinRides";
-import { organizationAPI, type OrganizationMember } from "../services/api";
+import {
+  organizationAPI,
+  type OrganizationMember,
+  type Organization,
+} from "../services/api";
 
 interface OrganizationDetailsProps {
   organizationId: number;
@@ -20,8 +24,27 @@ const OrganizationDetails = ({
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [membersError, setMembersError] = useState<string | null>(null);
   const [ridesRefreshTrigger, setRidesRefreshTrigger] = useState(0);
+  const [organization, setOrganization] = useState<Organization | null>(null);
+  const [isLoadingOrg, setIsLoadingOrg] = useState(true);
   const isAdmin = true; // Set to true for now
   const isOwner = true; // Set to true for now - will be determined by backend
+
+  // Fetch organization details on mount
+  useEffect(() => {
+    const fetchOrganization = async () => {
+      setIsLoadingOrg(true);
+      try {
+        const org = await organizationAPI.getOrganization(organizationId);
+        setOrganization(org);
+      } catch (err: any) {
+        console.error("Error fetching organization:", err);
+      } finally {
+        setIsLoadingOrg(false);
+      }
+    };
+
+    fetchOrganization();
+  }, [organizationId]);
 
   // Fetch members when showMembers is toggled to true
   useEffect(() => {
@@ -65,10 +88,17 @@ const OrganizationDetails = ({
         <h1 className="text-5xl font-bold mb-8">{organizationName}</h1>
       </div>
 
-      {/* Admin Panel - Only shown if isAdmin is true */}
-      {isAdmin && (
+      {/* Loading State for Organization */}
+      {isLoadingOrg && (
+        <div className="px-[2rem] text-center text-xl py-8">
+          Loading organization details...
+        </div>
+      )}
+
+      {/* Admin Panel - Only shown if isAdmin is true and organization is loaded */}
+      {!isLoadingOrg && isAdmin && organization && (
         <div className="px-[2rem]">
-          <AdminPanel isOwner={isOwner} />
+          <AdminPanel isOwner={isOwner} accessCode={organization.access_code} />
         </div>
       )}
 

@@ -21,7 +21,6 @@ const ZotDriverApplication = () => {
   // - No driver_id: User has not applied
   // - Has driver_id but is_driver is false: Pending approval
   // - Has driver_id and is_driver is true: Approved driver
-  const hasNotApplied = !user?.driver_id;
   const hasPendingApplication =
     user?.driver_id !== null && user?.is_driver === false;
   const isApprovedDriver = user?.driver_id !== null && user?.is_driver === true;

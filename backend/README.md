@@ -820,7 +820,7 @@ Get all driver posts (rides with a driver).
 ### Organization Routes
 
 #### `POST /organizations`
-Create a new organization. The authenticated user becomes the owner.
+Create a new organization. The authenticated user becomes the owner. A unique 6-character alphanumeric access code is automatically generated.
 
 **Headers:** `Authorization: Bearer <token>`
 
@@ -832,7 +832,16 @@ Create a new organization. The authenticated user becomes the owner.
 }
 ```
 
-**Response (201):** Created organization object
+**Response (201):**
+```json
+{
+  "id": 1,
+  "name": "UCI Cycling Club",
+  "description": "For cyclists at UCI",
+  "organization_rides": [],
+  "access_code": "A3K9M2"  // Automatically generated
+}
+```
 
 **Error Responses:**
 - `400`: Missing required field: name
@@ -1027,6 +1036,40 @@ Get all rides associated with an organization.
 **Error Responses:**
 - `401`: Authentication required
 - `404`: Organization not found
+
+---
+
+#### `POST /organizations/join`
+Join an organization using its access code. The authenticated user will be added as a regular member (not owner, not admin, not driver).
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "access_code": "A3K9M2"  // 6-character alphanumeric code (case-insensitive)
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Successfully joined the organization",
+  "organization": {
+    "id": 1,
+    "name": "UCI Cycling Club",
+    "description": "For cyclists at UCI",
+    "organization_rides": [],
+    "access_code": "A3K9M2"
+  }
+}
+```
+
+**Error Responses:**
+- `400`: Missing required field: access_code
+- `401`: Authentication required
+- `404`: Organization not found with this access code
+- `409`: You are already a member of this organization
 
 ---
 
@@ -1247,6 +1290,7 @@ Get all reviews authored by a specific user.
 - `id`: Integer (Primary Key)
 - `name`: String (Unique)
 - `description`: String (Optional)
+- `access_code`: String (6 characters, Unique) - Automatically generated alphanumeric code
 - `created_at`: DateTime
 - `updated_at`: DateTime
 

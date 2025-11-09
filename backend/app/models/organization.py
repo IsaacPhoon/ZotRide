@@ -3,9 +3,15 @@ from sqlalchemy import DateTime, String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.extensions import db
 from typing import TYPE_CHECKING, Optional
+import random
+import string
 
 if TYPE_CHECKING:
     from app.models import UserOrganizationData, Ride
+
+def generate_access_code() -> str:
+    """Generate a random 6-character alphanumeric access code."""
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 class Organization(db.Model):
     __tablename__ = 'organizations'
@@ -29,6 +35,7 @@ class Organization(db.Model):
     def __init__(self, name: str, description: Optional[str] = None):
         self.name = name
         self.description = description
+        self.access_code = generate_access_code()
 
     def to_dict(self) -> dict:
         return {

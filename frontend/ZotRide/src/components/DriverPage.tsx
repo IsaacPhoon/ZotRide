@@ -5,6 +5,7 @@ import DriverRideCard from "./DriverRideCard";
 import RouteMap from "./RouteMap";
 import { rideAPI, authAPI, driverAPI } from "../services/api";
 import type { Ride } from "../services/api";
+import host from "../assets/zotride_host.png";
 
 const DriverPage: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);

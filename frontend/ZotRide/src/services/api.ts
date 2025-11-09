@@ -283,6 +283,28 @@ export const organizationAPI = {
     });
     return response.data;
   },
+
+  /**
+   * Update a member's role in an organization (admin/driver status)
+   */
+  updateMemberRole: async (
+    orgId: number,
+    userId: number,
+    updates: { is_admin?: boolean; is_driver?: boolean }
+  ): Promise<OrganizationMember> => {
+    const response = await api.put<OrganizationMember>(
+      `/organizations/${orgId}/members/${userId}/role`,
+      updates
+    );
+    return response.data;
+  },
+
+  /**
+   * Remove a member from an organization
+   */
+  removeMember: async (orgId: number, userId: number): Promise<void> => {
+    await api.delete(`/organizations/${orgId}/members/${userId}`);
+  },
 };
 
 // Ride API Functions

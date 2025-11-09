@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import ZotDriverApplication from "./ZotDriverApplication";
-import testImage from "../assets/testimage2.avif";
+import apply from "../assets/zotride_apply.png";
 import ProfileLicenseCard from "./ProfileLicenseCard";
 import { useAuth } from "../context/AuthContext";
 
@@ -91,7 +91,7 @@ const Profile = () => {
         </div>
         <div className="flex items-center justify-center">
           <img
-            src={testImage}
+            src={apply}
             alt="Driver application illustration"
             className="w-full h-auto rounded-lg shadow-lg"
           />

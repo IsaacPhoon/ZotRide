@@ -1,5 +1,5 @@
 import { useState } from "react";
-import testImage from "../assets/testimage.png";
+import host from "../assets/zotride_host.png";
 import { rideAPI } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import type { CreateRideRequest } from "../services/api";
@@ -224,9 +224,9 @@ const OrganizationFunctions = ({
 
         {/* Right Side - Image */}
         <div className="flex items-center justify-center">
-          <div className="relative">
+          <div className="relative max-w-md">
             <img
-              src={testImage}
+              src={host}
               alt="Organization illustration"
               className="w-full h-auto rounded-lg shadow-2xl"
             />

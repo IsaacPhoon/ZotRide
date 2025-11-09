@@ -1,6 +1,8 @@
 import React from "react";
 import { motion, type Variants } from "framer-motion";
-import testImage from "../assets/testimage.png";
+import zotride_arrange from "../assets/zotride_arrange.png";
+import zotride_club from "../assets/zotride_club.png";
+import zotride_money from "../assets/zotride_money.png";
 
 const AboutGrid: React.FC = () => {
   // Animation variants for fade-in from left
@@ -44,7 +46,7 @@ const AboutGrid: React.FC = () => {
             </motion.div>
             <motion.figure className="lg:mr-auto" variants={fadeInLeft}>
               <img
-                src={testImage}
+                src={zotride_arrange}
                 alt="Feature illustration"
                 className="max-w-lg rounded-lg shadow-2xl"
               />
@@ -70,7 +72,7 @@ const AboutGrid: React.FC = () => {
             </motion.div>
             <motion.figure className="lg:ml-auto" variants={fadeInRight}>
               <img
-                src={testImage}
+                src={zotride_club}
                 alt="Feature illustration"
                 className="max-w-lg rounded-lg shadow-2xl"
               />
@@ -96,7 +98,7 @@ const AboutGrid: React.FC = () => {
             </motion.div>
             <motion.figure className="lg:mr-auto" variants={fadeInLeft}>
               <img
-                src={testImage}
+                src={zotride_money}
                 alt="Feature illustration"
                 className="max-w-lg rounded-lg shadow-2xl"
               />

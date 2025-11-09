@@ -76,7 +76,7 @@ def create_organization(current_user):
 @token_required
 def get_organizations(current_user):
     """
-    Get all organizations. Requires authentication.
+    Get all organizations where the current user is a member. Requires authentication.
 
     Headers:
         Authorization: Bearer <JWT token>
@@ -86,14 +86,21 @@ def get_organizations(current_user):
         - offset: Number of organizations to skip (optional)
 
     Returns:
-        200: List of all organizations
+        200: List of organizations where user is a member
         401: Authentication required
     """
     try:
         limit = request.args.get('limit', type=int)
         offset = request.args.get('offset', type=int, default=0)
 
-        query = select(Organization).offset(offset)
+        # Get only organizations where current user is a member
+        query = (
+            select(Organization)
+            .join(UserOrganizationData, Organization.id == UserOrganizationData.organization_id)
+            .where(UserOrganizationData.user_id == current_user.id)
+            .offset(offset)
+        )
+        
         if limit:
             query = query.limit(limit)
 

@@ -4,17 +4,21 @@ import { organizationAPI, type Ride } from "../services/api";
 
 interface ClubJoinRidesProps {
   organizationId: number;
+  refreshTrigger?: number; // When this changes, it triggers a refresh
 }
 
-const ClubJoinRides = ({ organizationId }: ClubJoinRidesProps) => {
+const ClubJoinRides = ({
+  organizationId,
+  refreshTrigger,
+}: ClubJoinRidesProps) => {
   const [rides, setRides] = useState<Ride[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch organization rides on mount
+  // Fetch organization rides on mount and when refreshTrigger changes
   useEffect(() => {
     fetchOrganizationRides();
-  }, [organizationId]);
+  }, [organizationId, refreshTrigger]);
 
   const fetchOrganizationRides = async () => {
     setIsLoading(true);

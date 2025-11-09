@@ -19,6 +19,7 @@ const OrganizationDetails = ({
   const [members, setMembers] = useState<OrganizationMember[]>([]);
   const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [membersError, setMembersError] = useState<string | null>(null);
+  const [ridesRefreshTrigger, setRidesRefreshTrigger] = useState(0);
   const isAdmin = true; // Set to true for now
   const isOwner = true; // Set to true for now - will be determined by backend
 
@@ -43,6 +44,12 @@ const OrganizationDetails = ({
     } finally {
       setIsLoadingMembers(false);
     }
+  };
+
+  // Handler for when a new ride is created
+  const handleRideCreated = () => {
+    // Increment the trigger to force ClubJoinRides to refresh
+    setRidesRefreshTrigger((prev) => prev + 1);
   };
 
   return (
@@ -144,10 +151,16 @@ const OrganizationDetails = ({
       </div>
 
       {/* Organization Functions */}
-      <OrganizationFunctions organizationId={organizationId} />
+      <OrganizationFunctions
+        organizationId={organizationId}
+        onRideCreated={handleRideCreated}
+      />
 
       {/* Club Join Rides */}
-      <ClubJoinRides organizationId={organizationId} />
+      <ClubJoinRides
+        organizationId={organizationId}
+        refreshTrigger={ridesRefreshTrigger}
+      />
     </div>
   );
 };

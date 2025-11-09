@@ -601,4 +601,77 @@ def get_organization_rides(org_id, current_user):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+
+@organization_bp.route('/organizations/join', methods=['POST'])
+@token_required
+def join_organization_by_access_code(current_user):
+    """
+    Join an organization using its access code. Requires authentication.
+
+    Headers:
+        Authorization: Bearer <JWT token>
+
+    Expected JSON body:
+    {
+        "access_code": "ABC123"  # 6-character alphanumeric code
+    }
+
+    Returns:
+        200: Successfully joined the organization
+        400: Invalid request data or missing required fields
+        401: Authentication required
+        404: Organization with this access code not found
+        409: User is already a member of this organization
+    """
+    try:
+        data = request.get_json()
+
+        # Validate required fields
+        if 'access_code' not in data:
+            return jsonify({'error': 'Missing required field: access_code'}), 400
+
+        access_code = data['access_code'].strip().upper()
+
+        # Find organization by access code
+        organization = db.session.execute(
+            select(Organization).where(Organization.access_code == access_code)
+        ).scalar_one_or_none()
+
+        if not organization:
+            return jsonify({'error': 'Organization not found with this access code'}), 404
+
+        # Check if user is already a member
+        existing_membership = db.session.execute(
+            select(UserOrganizationData).where(
+                and_(
+                    UserOrganizationData.user_id == current_user.id,
+                    UserOrganizationData.organization_id == organization.id
+                )
+            )
+        ).scalar_one_or_none()
+
+        if existing_membership:
+            return jsonify({'error': 'You are already a member of this organization'}), 409
+
+        # Add user as a regular member
+        member_data = UserOrganizationData(
+            user_id=current_user.id,
+            organization_id=organization.id,
+            is_owner=False,
+            is_admin=False,
+            is_driver=False
+        )
+
+        db.session.add(member_data)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Successfully joined the organization',
+            'organization': organization.to_dict()
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
 #Add Transfer Ownership Route

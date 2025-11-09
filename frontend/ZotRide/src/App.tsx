@@ -11,7 +11,19 @@ const App: React.FC = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [activePage, setActivePage] = useState<
     "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE"
-  >("ABOUT");
+  >(() => {
+    // Restore the last active page from localStorage
+    const savedPage = localStorage.getItem("activePage");
+    if (savedPage && ["HOME", "ABOUT", "DRIVER", "ORGANIZATIONS", "PROFILE"].includes(savedPage)) {
+      return savedPage as "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE";
+    }
+    return "ABOUT";
+  });
+
+  // Save active page to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("activePage", activePage);
+  }, [activePage]);
 
   // Redirect to ABOUT if user logs out while on a protected page
   useEffect(() => {

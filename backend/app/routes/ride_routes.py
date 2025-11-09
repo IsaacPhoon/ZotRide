@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from sqlalchemy import select, and_
 from datetime import datetime, timezone
 from app.extensions import db
-from app.models import Ride, DriverData, User, UserRideData, Organization
+from app.models import Ride, DriverData, UserRideData, Organization
 from app.auth_utils import token_required
 
 ride_bp = Blueprint('ride', __name__)
@@ -494,7 +494,7 @@ def join_ride_driver(ride_id, current_user):
 
         if not driver_data:
             return jsonify({'error': 'User is not registered as a driver'}), 400
-        
+
         if not driver_data.is_approved:
             return jsonify({'error': 'Driver is not approved'}), 403
 
@@ -553,7 +553,7 @@ def leave_ride(ride_id, current_user):
         ride = db.session.get(Ride, ride_id)
         if not ride:
             return jsonify({'error': 'Ride not found'}), 404
-        
+
         # Find user-ride association
         user_ride_data = db.session.execute(
             select(UserRideData).where(

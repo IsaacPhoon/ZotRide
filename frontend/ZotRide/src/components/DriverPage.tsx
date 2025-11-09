@@ -5,7 +5,6 @@ import DriverRideCard from "./DriverRideCard";
 import RouteMap from "./RouteMap";
 import { rideAPI, authAPI, driverAPI } from "../services/api";
 import type { Ride } from "../services/api";
-import host from "../assets/zotride_host.png";
 
 const DriverPage: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([]);
@@ -199,7 +198,9 @@ const DriverPage: React.FC = () => {
 
             {isLoading && (
               <div className="flex justify-center items-center h-[16rem]">
-                <p className="text-gray-600 text-lg">Loading ride requests...</p>
+                <p className="text-gray-600 text-lg">
+                  Loading ride requests...
+                </p>
               </div>
             )}
 

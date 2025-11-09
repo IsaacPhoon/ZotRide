@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { rideAPI } from "../services/api";
 import type { CreateRideRequest } from "../services/api";
 import ErrorModal from "./ErrorModal";
@@ -9,12 +9,27 @@ const RequestRideForm = () => {
   const [destinationAddress, setDestinationAddress] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
-  const [priceOption, setPriceOption] = useState<'free' | 'gas' | 'gas with fee'>('free');
+  const [priceOption, setPriceOption] = useState<
+    "free" | "gas" | "gas with fee"
+  >("free");
   const [comment, setComment] = useState("");
   const [commentLength, setCommentLength] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isInActiveRide, setIsInActiveRide] = useState(false);
+
+  useEffect(() => {
+    const checkActiveRide = async () => {
+      try {
+        const inRide = await rideAPI.isUserInActiveRide();
+        setIsInActiveRide(inRide);
+      } catch (err) {
+        console.error("Error checking active ride:", err);
+      }
+    };
+    checkActiveRide();
+  }, []);
 
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setComment(e.target.value);
@@ -25,6 +40,14 @@ const RequestRideForm = () => {
     // Clear previous messages
     setError("");
     setSuccess("");
+
+    // Check if user is in an active ride
+    if (isInActiveRide) {
+      setError(
+        "You are already in an active ride. Please complete or leave your current ride before requesting another."
+      );
+      return;
+    }
 
     // Validate required fields
     if (!pickupAddress.trim()) {
@@ -62,12 +85,15 @@ const RequestRideForm = () => {
       setDestinationAddress("");
       setDate("");
       setTime("");
-      setPriceOption('free');
+      setPriceOption("free");
       setComment("");
       setCommentLength(0);
     } catch (err: any) {
-      console.error('Create Ride Error:', err);
-      setError(err.response?.data?.error || 'Failed to create ride request. Please try again.');
+      console.error("Create Ride Error:", err);
+      setError(
+        err.response?.data?.error ||
+          "Failed to create ride request. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +145,9 @@ const RequestRideForm = () => {
       <div>
         <select
           value={priceOption}
-          onChange={(e) => setPriceOption(e.target.value as 'free' | 'gas' | 'gas with fee')}
+          onChange={(e) =>
+            setPriceOption(e.target.value as "free" | "gas" | "gas with fee")
+          }
           className="w-full bg-gray-100 border-b-2 border-black px-3 py-2 focus:outline-none rounded-t-lg"
           disabled={isLoading}
         >
@@ -145,9 +173,7 @@ const RequestRideForm = () => {
       </div>
 
       {success && (
-        <div className="text-green-600 text-sm font-medium">
-          {success}
-        </div>
+        <div className="text-green-600 text-sm font-medium">{success}</div>
       )}
 
       <div className="grid grid-cols-2 gap-8">
@@ -155,12 +181,12 @@ const RequestRideForm = () => {
           className="flex rounded-full h-[3rem] border border-black items-center justify-center cursor-pointer hover:bg-black hover:text-white transition px-8"
           onClick={handleSubmit}
         >
-          {isLoading ? 'Requesting...' : 'Request'}
+          {isLoading ? "Requesting..." : "Request"}
         </div>
       </div>
 
       {/* Error Modal */}
-      <ErrorModal message={error} onClose={() => setError('')} />
+      <ErrorModal message={error} onClose={() => setError("")} />
     </div>
   );
 };

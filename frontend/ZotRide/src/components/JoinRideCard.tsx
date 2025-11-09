@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import JoinRidePopup from "./JoinRidePopup";
 import { rideAPI } from "../services/api";
 import ErrorModal from "./ErrorModal";
@@ -31,8 +31,28 @@ const JoinRideCard = ({
   const [showPopup, setShowPopup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isJoining, setIsJoining] = useState(false);
+  const [isInActiveRide, setIsInActiveRide] = useState(false);
+
+  useEffect(() => {
+    const checkActiveRide = async () => {
+      try {
+        const inRide = await rideAPI.isUserInActiveRide();
+        setIsInActiveRide(inRide);
+      } catch (err) {
+        console.error("Error checking active ride:", err);
+      }
+    };
+    checkActiveRide();
+  }, []);
 
   const handleJoin = async () => {
+    if (isInActiveRide) {
+      setError(
+        "You are already in an active ride. Please complete or leave your current ride before joining another."
+      );
+      return;
+    }
+
     try {
       setIsJoining(true);
       await rideAPI.joinRide(id);
@@ -71,8 +91,9 @@ const JoinRideCard = ({
           <div className="card-actions justify-start gap-4 mt-2">
             <button
               onClick={handleJoin}
-              disabled={isJoining}
+              disabled={isJoining || isInActiveRide}
               className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-8 disabled:opacity-50"
+              title={isInActiveRide ? "You are already in an active ride" : ""}
             >
               {isJoining ? "Joining..." : "Join"}
             </button>
@@ -98,6 +119,7 @@ const JoinRideCard = ({
           cost={cost}
           onClose={handleClosePopup}
           onRideJoined={onRideJoined}
+          isInActiveRide={isInActiveRide}
         />
       )}
 

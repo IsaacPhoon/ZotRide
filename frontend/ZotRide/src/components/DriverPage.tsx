@@ -93,6 +93,12 @@ const DriverPage: React.FC = () => {
                     date={date}
                     riders={ride.max_riders}
                     cost={formatPriceOption(ride.price_option)}
+                    ridersList={ride.riders?.map((r) => r.name) || []}
+                    commentsList={
+                      ride.riders
+                        ?.map((r) => r.comment || "No comment")
+                        .filter((c) => c !== "No comment") || []
+                    }
                     onRideAccepted={fetchRiderRequests}
                   />
                 );

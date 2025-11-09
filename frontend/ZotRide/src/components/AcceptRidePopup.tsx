@@ -13,6 +13,7 @@ interface AcceptRidePopupProps {
   cost: string;
   onClose: () => void;
   onRideAccepted?: () => void;
+  isInActiveRide?: boolean;
 }
 
 const AcceptRidePopup = ({
@@ -26,12 +27,20 @@ const AcceptRidePopup = ({
   cost,
   onClose,
   onRideAccepted,
+  isInActiveRide = false,
 }: AcceptRidePopupProps) => {
   const [isAccepting, setIsAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [driverComment, setDriverComment] = useState("");
 
   const handleAccept = async () => {
+    if (isInActiveRide) {
+      setError(
+        "You are already in an active ride. Please complete your current ride before accepting another."
+      );
+      return;
+    }
+
     try {
       setIsAccepting(true);
       await rideAPI.acceptRide(id, driverComment || undefined);
@@ -77,7 +86,7 @@ const AcceptRidePopup = ({
                 {comments.length > 0 ? comments.join(", ") : "None yet"}
               </p>
               <p className="text-black">
-                <b>Ride Cost:</b> {cost}
+                <b>Ride Pay:</b> {cost}
               </p>
             </div>
 
@@ -104,8 +113,11 @@ const AcceptRidePopup = ({
               </button>
               <button
                 onClick={handleAccept}
-                disabled={isAccepting}
+                disabled={isAccepting || isInActiveRide}
                 className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-6 disabled:opacity-50"
+                title={
+                  isInActiveRide ? "You are already in an active ride" : ""
+                }
               >
                 {isAccepting ? "Accepting..." : "Accept"}
               </button>

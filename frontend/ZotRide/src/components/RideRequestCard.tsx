@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AcceptRidePopup from "./AcceptRidePopup";
 import { rideAPI } from "../services/api";
 import ErrorModal from "./ErrorModal";
@@ -31,8 +31,28 @@ const RideRequestCard = ({
   const [showPopup, setShowPopup] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAccepting, setIsAccepting] = useState(false);
+  const [isInActiveRide, setIsInActiveRide] = useState(false);
+
+  useEffect(() => {
+    const checkActiveRide = async () => {
+      try {
+        const inRide = await rideAPI.isUserInActiveRide();
+        setIsInActiveRide(inRide);
+      } catch (err) {
+        console.error("Error checking active ride:", err);
+      }
+    };
+    checkActiveRide();
+  }, []);
 
   const handleAccept = async () => {
+    if (isInActiveRide) {
+      setError(
+        "You are already in an active ride. Please complete your current ride before accepting another."
+      );
+      return;
+    }
+
     try {
       setIsAccepting(true);
       await rideAPI.acceptRide(id);
@@ -73,8 +93,9 @@ const RideRequestCard = ({
           <div className="card-actions justify-start gap-4 mt-2">
             <button
               onClick={handleAccept}
-              disabled={isAccepting}
+              disabled={isAccepting || isInActiveRide}
               className="h-[2rem] w-[8rem] btn btn-outline border-black text-black rounded-full hover:bg-black hover:text-white active:scale-100 px-8 disabled:opacity-50"
+              title={isInActiveRide ? "You are already in an active ride" : ""}
             >
               {isAccepting ? "Accepting..." : "Accept"}
             </button>
@@ -100,6 +121,7 @@ const RideRequestCard = ({
           cost={cost}
           onClose={handleClosePopup}
           onRideAccepted={onRideAccepted}
+          isInActiveRide={isInActiveRide}
         />
       )}
 

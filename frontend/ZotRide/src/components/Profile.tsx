@@ -82,7 +82,10 @@ const Profile = () => {
           </motion.div>
         </div>
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[8rem] pt-[8rem]">
+      <div
+        id="driver-application"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[8rem] pt-[8rem]"
+      >
         <div className="w-full items-center justify center">
           <ZotDriverApplication />
         </div>

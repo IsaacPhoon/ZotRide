@@ -1,6 +1,7 @@
 import CreateOrganization from "./CreateOrganization";
 import JoinOrganization from "./JoinOrganization";
 import OrganizationCard from "./OrganizationCard";
+import OrganizationFunctions from "./OrganizationFunctions";
 
 const Organizations = () => {
   return (
@@ -17,7 +18,7 @@ const Organizations = () => {
           <OrganizationCard
             id={1}
             organizationName="Anteater Coders"
-            description="A student organization focused on software development, hackathons, and building innovative projects together.A student organization focused on software development, hackathons, and building innovative projects together.A student organization focused on software development, hackathons, and building innovative projects together."
+            description="A student organization focused on software development, hackathons, and building innovative projects together."
             members={150}
           />
           <OrganizationCard
@@ -33,6 +34,7 @@ const Organizations = () => {
             members={120}
           />
         </div>
+        <OrganizationFunctions />
       </div>
     </div>
   );

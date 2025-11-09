@@ -4,6 +4,7 @@ import OrganizationFunctions from "./OrganizationFunctions";
 import ClubJoinRides from "./ClubJoinRides";
 import {
   organizationAPI,
+  authAPI,
   type OrganizationMember,
   type Organization,
 } from "../services/api";
@@ -26,8 +27,26 @@ const OrganizationDetails = ({
   const [ridesRefreshTrigger, setRidesRefreshTrigger] = useState(0);
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [isLoadingOrg, setIsLoadingOrg] = useState(true);
-  const isAdmin = true; // Set to true for now
-  const isOwner = true; // Set to true for now - will be determined by backend
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  // Determine current user's role from members list
+  const currentUserMember = members.find((m) => m.user_id === currentUserId);
+  const isAdmin = currentUserMember?.is_admin || false;
+  const isOwner = currentUserMember?.is_owner || false;
+
+  // Fetch current user ID on mount
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const userData = await authAPI.getCurrentUser();
+        setCurrentUserId(userData.id);
+      } catch (err) {
+        console.error("Error fetching current user:", err);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   // Fetch organization details on mount
   useEffect(() => {
@@ -86,7 +105,7 @@ const OrganizationDetails = ({
       <div className="px-[2rem] pt-[2rem]">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-black hover:underline mb-4"
+          className="flex items-center gap-2 text-black hover:underline mb-4 cursor-pointer"
         >
           ← Back to Organizations
         </button>

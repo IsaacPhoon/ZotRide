@@ -534,7 +534,7 @@ def join_ride_driver(ride_id, current_user):
 @token_required
 def leave_ride(ride_id, current_user):
     """
-    Leave a ride as a rider.
+    Leave a ride.
 
     Authentication: Required
     Headers:
@@ -545,15 +545,15 @@ def leave_ride(ride_id, current_user):
 
     Returns:
         200: Successfully left the ride
+        204: Successfully deleted ride
         404: Ride or user-ride association not found
         400: Invalid request data
     """
     try:
-        # Get ride
         ride = db.session.get(Ride, ride_id)
         if not ride:
             return jsonify({'error': 'Ride not found'}), 404
-
+        
         # Find user-ride association
         user_ride_data = db.session.execute(
             select(UserRideData).where(
@@ -564,16 +564,43 @@ def leave_ride(ride_id, current_user):
             )
         ).scalar_one_or_none()
 
-        if not user_ride_data:
-            return jsonify({'error': 'User has not joined this ride'}), 404
+        # Check if user is the driver
+        is_driver: bool = False
+        if ride.driver_id and current_user.driver_data:
+            is_driver = ride.driver_id == current_user.driver_data.id
 
-        db.session.delete(user_ride_data)
-        db.session.commit()
+        # Verify user is part of this ride
+        if not user_ride_data and not is_driver:
+            return jsonify({'error': 'User has not joined this ride as rider or driver'}), 404
 
-        return jsonify({
-            'message': 'Successfully left the ride',
-            'ride': ride.to_dict()
-        }), 200
+        # Determine if ride should be deleted
+        delete_ride: bool = False
+        if is_driver and len(ride.riders) == 0:  # Driver leaving with no riders
+            delete_ride = True
+        elif len(ride.riders) == 1 and ride.riders[0].user_id == current_user.id and ride.driver_id is None:  # Last rider with no driver
+            delete_ride = True
+
+        if delete_ride:
+            db.session.delete(ride)
+            db.session.commit()
+            return jsonify({
+                'message': 'Successfully deleted ride',
+                'ride': None
+            }), 204
+        elif is_driver:
+            ride.driver_id = None
+            db.session.commit()
+            return jsonify({
+                'message': 'Driver successfully left the ride',
+                'ride': ride.to_dict()
+            }), 200
+        else:
+            db.session.delete(user_ride_data)
+            db.session.commit()
+            return jsonify({
+                'message': 'Rider successfully left the ride',
+                'ride': ride.to_dict()
+            }), 200
 
     except Exception as e:
         db.session.rollback()

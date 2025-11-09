@@ -1,9 +1,59 @@
 import { useState } from "react";
 import testImage from "../assets/testimage.png";
+import { organizationAPI } from "../services/api";
 
-const CreateOrganization = () => {
+interface CreateOrganizationProps {
+  onOrganizationCreated?: () => void;
+}
+
+const CreateOrganization = ({
+  onOrganizationCreated,
+}: CreateOrganizationProps) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [nameLength, setNameLength] = useState(0);
   const [descriptionLength, setDescriptionLength] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!name.trim()) {
+      setError("Organization name is required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      await organizationAPI.createOrganization(
+        name.trim(),
+        description.trim() || undefined
+      );
+
+      // Success! Clear form
+      setName("");
+      setDescription("");
+      setNameLength(0);
+      setDescriptionLength(0);
+      setSuccess(true);
+
+      // Notify parent component to refresh the list
+      if (onOrganizationCreated) {
+        onOrganizationCreated();
+      }
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      console.error("Error creating organization:", err);
+      setError(err.response?.data?.error || "Failed to create organization");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-white text-black py-[4rem] px-[2rem] lg:px-[2rem]">
@@ -14,12 +64,30 @@ const CreateOrganization = () => {
             <h1 className="text-5xl font-bold mb-12">Organization</h1>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-100 border-2 border-red-500 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="bg-green-100 border-2 border-green-500 text-green-700 px-4 py-3 rounded-lg">
+              Organization created successfully!
+            </div>
+          )}
+
           <div className="relative pb-4">
             <input
               type="text"
               placeholder="Organization Name"
               maxLength={255}
-              onChange={(e) => setNameLength(e.target.value.length)}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setNameLength(e.target.value.length);
+              }}
               className="w-full bg-gray-100 border-b-2 border-black px-3 py-3 text-2xl focus:outline-none placeholder-black/50 rounded-t-lg"
             />
             <div className="absolute bottom-0 right-0 text-xs text-black/50">
@@ -32,7 +100,11 @@ const CreateOrganization = () => {
               placeholder="Organization Description"
               rows={5}
               maxLength={500}
-              onChange={(e) => setDescriptionLength(e.target.value.length)}
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                setDescriptionLength(e.target.value.length);
+              }}
               className="w-full bg-gray-100 border-b-2 border-black px-3 text-2xl focus:outline-none placeholder-black/50 resize-none rounded-t-lg"
             />
             <div className="absolute bottom-0 right-0 text-xs text-black/50 ">
@@ -41,8 +113,12 @@ const CreateOrganization = () => {
           </div>
 
           <div className="pt-0">
-            <button className="w-full lg:w-auto flex rounded-full h-[3.5rem] border-2 border-black items-center justify-center cursor-pointer hover:bg-black hover:text-white transition px-16 text-lg font-medium">
-              Create Organization
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="w-full lg:w-auto flex rounded-full h-[3.5rem] border-2 border-black items-center justify-center cursor-pointer hover:bg-black hover:text-white transition px-16 text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Creating..." : "Create Organization"}
             </button>
           </div>
         </div>

@@ -17,7 +17,7 @@ const RideRequestCard = ({
   cost,
 }: RideRequestCardProps) => {
   return (
-    <div className="card border border-black bg-white/50 rounded-3xl">
+    <div className="card border border-black bg-white/50 rounded-3xl max-h-[18rem]">
       <div className="card-body">
         <h1 className="card-title text-black font-bold text-xl">
           {pickup} → {dropoff} @ {time}

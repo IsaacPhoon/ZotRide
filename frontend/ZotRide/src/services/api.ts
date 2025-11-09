@@ -4,30 +4,6 @@ import type { AxiosInstance, AxiosError } from 'axios';
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
-// Cookie utility functions
-const cookieUtils = {
-  set: (name: string, value: string, days: number = 7): void => {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
-  },
-
-  get: (name: string): string | null => {
-    const nameEQ = name + '=';
-    const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-      if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
-  },
-
-  delete: (name: string): void => {
-    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
-  },
-};
-
 // Create axios instance with /api prefix
 const api: AxiosInstance = axios.create({
   baseURL: `${API_BASE_URL}/api`,
@@ -39,7 +15,7 @@ const api: AxiosInstance = axios.create({
 // Add request interceptor to attach JWT token
 api.interceptors.request.use(
   (config) => {
-    const token = cookieUtils.get('jwt_token');
+    const token = localStorage.getItem('jwt_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -54,8 +30,8 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Token expired or invalid - clear auth state
-      cookieUtils.delete('jwt_token');
-      cookieUtils.delete('user');
+      localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user');
       // You can add redirect to login here if needed
     }
     return Promise.reject(error);
@@ -96,39 +72,69 @@ export interface RegisterResponse {
   is_admin: boolean;
 }
 
-// Token Management (using cookies instead of localStorage)
+// Organization Types
+export interface Organization {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationWithMembers extends Organization {
+  member_count: number;
+}
+
+export interface OrganizationMember {
+  user_id: number;
+  name: string;
+  email: string;
+  is_owner: boolean;
+  is_admin: boolean;
+  is_driver: boolean;
+}
+
+export interface CreateOrganizationRequest {
+  name: string;
+  description?: string;
+}
+
+export interface CreateOrganizationResponse {
+  id: number;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Token Management (using localStorage)
 export const tokenManager = {
-  getToken: (): string | null => cookieUtils.get('jwt_token'),
+  getToken: (): string | null => localStorage.getItem('jwt_token'),
 
   setToken: (token: string): void => {
-    cookieUtils.set('jwt_token', token, 7); // 7 days expiration
+    localStorage.setItem('jwt_token', token);
   },
 
   removeToken: (): void => {
-    cookieUtils.delete('jwt_token');
+    localStorage.removeItem('jwt_token');
   },
 
   getUser: (): User | null => {
-    const userStr = cookieUtils.get('user');
-    if (!userStr) return null;
-    try {
-      return JSON.parse(decodeURIComponent(userStr));
-    } catch {
-      return null;
-    }
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
   },
 
   setUser: (user: User): void => {
-    cookieUtils.set('user', encodeURIComponent(JSON.stringify(user)), 7); // 7 days expiration
+    localStorage.setItem('user', JSON.stringify(user));
   },
 
   removeUser: (): void => {
-    cookieUtils.delete('user');
+    localStorage.removeItem('user');
   },
 
   clearAuth: (): void => {
-    cookieUtils.delete('jwt_token');
-    cookieUtils.delete('user');
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user');
   },
 };
 
@@ -184,6 +190,86 @@ export const authAPI = {
    */
   getCurrentUser: async (): Promise<User> => {
     const response = await api.get('/auth/me');
+    return response.data;
+  },
+};
+
+// Organization API Functions
+export const organizationAPI = {
+  /**
+   * Create a new organization
+   */
+  createOrganization: async (
+    name: string,
+    description?: string
+  ): Promise<CreateOrganizationResponse> => {
+    const response = await api.post<CreateOrganizationResponse>('/organizations', {
+      name,
+      description,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get all organizations
+   */
+  getAllOrganizations: async (limit?: number, offset?: number): Promise<Organization[]> => {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    
+    const response = await api.get<Organization[]>('/organizations', { params });
+    return response.data;
+  },
+
+  /**
+   * Get members of an organization
+   */
+  getOrganizationMembers: async (orgId: number): Promise<OrganizationMember[]> => {
+    const response = await api.get<OrganizationMember[]>(`/organizations/${orgId}/members`);
+    return response.data;
+  },
+};
+
+// Ride API Functions
+export interface CreateRideRequest {
+  pickup_address: string;
+  pickup_time: string;
+  destination_address: string;
+  max_riders?: number;
+  price_option: 'free' | 'gas' | 'gas with fee';
+  driver_id?: number;
+  organization_id?: number;
+  driver_comment?: string;
+}
+
+export interface Ride {
+  id: number;
+  pickup_address: string;
+  pickup_time: string;
+  destination_address: string;
+  max_riders: number;
+  price_option: string;
+  driver_id: number | null;
+  organization_id: number | null;
+  driver_comment: string | null;
+  date_created: string;
+}
+
+export const rideAPI = {
+  /**
+   * Create a new ride request (without driver) or driver post (with driver)
+   */
+  createRide: async (rideData: CreateRideRequest): Promise<{ message: string; ride: Ride }> => {
+    const response = await api.post('/rides', rideData);
+    return response.data;
+  },
+
+  /**
+   * Get all rider requests (rides without driver)
+   */
+  getRiderRequests: async (): Promise<Ride[]> => {
+    const response = await api.get('/rides/rider-requests');
     return response.data;
   },
 };

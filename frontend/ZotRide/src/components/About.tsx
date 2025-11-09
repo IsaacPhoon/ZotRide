@@ -4,6 +4,7 @@ import type { CredentialResponse } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../services/api';
 import RegistrationModal from './RegistrationModal';
+import ErrorModal from './ErrorModal';
 
 const About: React.FC = () => {
   const { login } = useAuth();
@@ -100,12 +101,8 @@ const About: React.FC = () => {
         </h1>
 
         <p className="text-gray-600 text-lg mb-8">
-          Less is more. Think minimally.
+          Where Anteaters ride together.
         </p>
-
-        {error && (
-          <div className="mb-4 text-red-600 text-sm">{error}</div>
-        )}
 
         <div className="mb-8 flex justify-center">
           <GoogleLogin
@@ -144,6 +141,9 @@ const About: React.FC = () => {
           </svg>
         </button>
       </div>
+
+      {/* Error Modal */}
+      <ErrorModal message={error} onClose={() => setError('')} />
 
       {/* Registration Modal */}
       {showRegistration && registrationData && (

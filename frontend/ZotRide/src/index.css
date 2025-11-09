@@ -11,3 +11,75 @@
     scrollbar-width: none;
   }
 }
+
+/* Google Maps Autocomplete Dropdown Styling */
+.pac-container {
+  background-color: white;
+  border: 2px solid black !important;
+  border-radius: 0.5rem;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin-top: -2px;
+  box-shadow: none !important;
+  font-family: inherit;
+}
+
+.pac-container::after {
+  display: none !important;
+}
+
+.pac-item {
+  padding: 0.75rem 1rem;
+  border-top: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: black;
+}
+
+.pac-item:hover {
+  background-color: black;
+  color: white;
+}
+
+.pac-item-selected,
+.pac-item:active {
+  background-color: black !important;
+  color: white !important;
+}
+
+.pac-item-query {
+  color: inherit;
+  font-size: 0.875rem;
+}
+
+.pac-matched {
+  font-weight: 600;
+}
+
+.pac-icon {
+  display: none;
+}
+
+.pac-item span {
+  color: inherit;
+}
+
+/* Style date and time inputs */
+input[type="date"],
+input[type="time"] {
+  color: black;
+  font-family: inherit;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0);
+}
+
+/* Fix placeholder color for date/time inputs */
+input[type="date"]:invalid,
+input[type="time"]:invalid {
+  color: rgba(0, 0, 0, 0.5);
+}

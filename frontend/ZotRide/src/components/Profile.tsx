@@ -3,8 +3,10 @@ import { motion } from "framer-motion";
 import ZotDriverApplication from "./ZotDriverApplication";
 import testImage from "../assets/testimage2.avif";
 import ProfileLicenseCard from "./ProfileLicenseCard";
+import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
+  const { logout } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [rotation, setRotation] = useState({ rotateX: 0, rotateY: 0 });
 
@@ -83,7 +85,7 @@ const Profile = () => {
         </div>
       </div>
       <div className="flex justify-center mt-[8rem]">
-        <button className="h-[3rem] w-[12rem] btn btn-outline border-red-500 text-red-500 rounded-full hover:bg-red-100 hover:text-red-500 active:scale-100 px-6">
+        <button className="h-[3rem] w-[12rem] btn btn-outline border-red-500 text-red-500 rounded-full hover:bg-red-100 hover:text-red-500 active:scale-100 px-6" onClick={logout}>
           Log Out
         </button>
       </div>

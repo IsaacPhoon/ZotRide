@@ -1,4 +1,3 @@
-import React from "react";
 import RequestRideForm from "./RequestRideForm";
 import HomeNavCards from "./HomeNavCards";
 import JoinRides from "./JoinRides";

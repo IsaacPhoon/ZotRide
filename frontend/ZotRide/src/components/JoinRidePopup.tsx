@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface JoinRidePopupProps {
   id: number;
   pickup: string;
@@ -12,7 +10,7 @@ interface JoinRidePopupProps {
   onClose: () => void;
 }
 
-const JoinRidePopup = ({ id, pickup, dropoff, time, date, driver, riders, cost, onClose } : JoinRidePopupProps) => {
+const JoinRidePopup = ({ pickup, dropoff, time, date, driver, riders, cost, onClose } : JoinRidePopupProps) => {
   return (
     <div className="fixed inset-0 z-50 w-full flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
       <div className="card bg-white border-2 border-black rounded-3xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>

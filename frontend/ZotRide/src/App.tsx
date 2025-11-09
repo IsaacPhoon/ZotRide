@@ -8,7 +8,7 @@ import Organizations from "./components/Organizations";
 import { useAuth } from "./context/AuthContext";
 
 const App: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [activePage, setActivePage] = useState<
     "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE"
   >("ABOUT");
@@ -23,10 +23,17 @@ const App: React.FC = () => {
   const handleSetActivePage = (
     page: "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE"
   ) => {
-    // Only allow navigation to protected pages if authenticated
-    if (page === "ABOUT" || isAuthenticated) {
-      setActivePage(page);
+    // Only allow navigation to ABOUT page without authentication
+    if (!isAuthenticated && page !== "ABOUT") {
+      return;
     }
+
+    // Only allow navigation to DRIVER page if user is a driver
+    if (page === "DRIVER" && (!user || !user.is_driver)) {
+      return;
+    }
+
+    setActivePage(page);
   };
 
   const renderPage = () => {
@@ -49,7 +56,11 @@ const App: React.FC = () => {
       case "ABOUT":
         return <AboutPage />;
       case "DRIVER":
-        return isAuthenticated ? <DriverPage /> : <AboutPage />;
+        return isAuthenticated && user?.is_driver ? (
+          <DriverPage />
+        ) : (
+          <AboutPage />
+        );
       case "ORGANIZATIONS":
         return isAuthenticated ? <Organizations /> : <AboutPage />;
       case "PROFILE":

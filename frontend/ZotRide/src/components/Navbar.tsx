@@ -1,4 +1,5 @@
 import NavbarItem from "./NavbarItem";
+import { useAuth } from "../context/AuthContext";
 
 interface NavbarProps {
   activeItem: "HOME" | "ABOUT" | "DRIVER" | "ORGANIZATIONS" | "PROFILE";
@@ -8,7 +9,14 @@ interface NavbarProps {
   isAuthenticated: boolean;
 }
 
-const Navbar = ({ activeItem, setActiveItem, isAuthenticated }: NavbarProps) => {
+const Navbar = ({
+  activeItem,
+  setActiveItem,
+  isAuthenticated,
+}: NavbarProps) => {
+  const { user } = useAuth();
+  const isDriver = user?.is_driver || false;
+
   return (
     <div className="flex justify-center w-full">
       <div className="navbar border border-black w-19/20 h-20 rounded-full justify-center mt-4">
@@ -25,25 +33,46 @@ const Navbar = ({ activeItem, setActiveItem, isAuthenticated }: NavbarProps) => 
             </div>
             <div
               onClick={() => setActiveItem("HOME")}
-              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
+              className={
+                isAuthenticated
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }
             >
               <NavbarItem text="HOME" active={activeItem === "HOME"} />
             </div>
             <div
               onClick={() => setActiveItem("DRIVER")}
-              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
+              className={
+                isAuthenticated && isDriver
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }
+              title={
+                !isDriver && isAuthenticated
+                  ? "Only available for ZotDrivers"
+                  : ""
+              }
             >
               <NavbarItem text="DRIVER" active={activeItem === "DRIVER"} />
             </div>
             <div
               onClick={() => setActiveItem("ORGANIZATIONS")}
-              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
+              className={
+                isAuthenticated
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }
             >
               <NavbarItem text="ORGS" active={activeItem === "ORGANIZATIONS"} />
             </div>
             <div
               onClick={() => setActiveItem("PROFILE")}
-              className={isAuthenticated ? "cursor-pointer" : "cursor-not-allowed opacity-50"}
+              className={
+                isAuthenticated
+                  ? "cursor-pointer"
+                  : "cursor-not-allowed opacity-50"
+              }
             >
               <NavbarItem text="PROFILE" active={activeItem === "PROFILE"} />
             </div>

@@ -129,7 +129,7 @@ const ProfileLicenseCard = ({
 
     // Has driver_id but is_driver = false: Pending approval
     if (user.driver_id && !user.is_driver) {
-      return "ZotDriver (Pending)";
+      return "ZotRider";
     }
 
     // No driver_id: Regular rider

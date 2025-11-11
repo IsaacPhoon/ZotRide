@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  APIProvider,
   Map,
   useMap,
   useMapsLibrary,
@@ -227,8 +226,6 @@ const Directions = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
 };
 
 const RouteMap = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
   // Default center (UCI campus)
   const defaultCenter = { lat: 33.6405, lng: -117.8443 };
 
@@ -247,22 +244,20 @@ const RouteMap = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
           </div>
         </div>
       )}
-      <APIProvider apiKey={apiKey}>
-        <Map
-          defaultCenter={defaultCenter}
-          defaultZoom={13}
-          gestureHandling={"greedy"}
-          disableDefaultUI={false}
-          mapId="route-map"
-        >
-          {hasAnyAddress && (
-            <Directions
-              pickupAddress={pickupAddress}
-              destinationAddress={destinationAddress}
-            />
-          )}
-        </Map>
-      </APIProvider>
+      <Map
+        defaultCenter={defaultCenter}
+        defaultZoom={13}
+        gestureHandling={"greedy"}
+        disableDefaultUI={false}
+        mapId="route-map"
+      >
+        {hasAnyAddress && (
+          <Directions
+            pickupAddress={pickupAddress}
+            destinationAddress={destinationAddress}
+          />
+        )}
+      </Map>
     </div>
   );
 };

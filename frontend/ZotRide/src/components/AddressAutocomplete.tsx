@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useMapsLibrary } from "@vis.gl/react-google-maps";
 
 interface AddressAutocompleteProps {
   value: string;
@@ -6,10 +7,6 @@ interface AddressAutocompleteProps {
   placeholder: string;
   disabled?: boolean;
 }
-
-// Global flag to track if the script is loaded
-let isScriptLoading = false;
-const scriptLoadCallbacks: (() => void)[] = [];
 
 const AddressAutocomplete = ({
   value,
@@ -19,65 +16,31 @@ const AddressAutocomplete = ({
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const placesLibrary = useMapsLibrary("places");
 
   useEffect(() => {
-    const initAutocomplete = () => {
-      if (!inputRef.current || !window.google?.maps?.places) return;
+    if (!placesLibrary || !inputRef.current) return;
 
-      try {
-        const autocompleteInstance = new google.maps.places.Autocomplete(inputRef.current, {
-          types: ["address"],
-          componentRestrictions: { country: "us" }, // Restrict to US addresses
-        });
+    try {
+      const autocompleteInstance = new placesLibrary.Autocomplete(inputRef.current, {
+        // Remove types restriction to allow searching by name (establishments, addresses, etc.)
+        componentRestrictions: { country: "us" }, // Restrict to US locations
+        fields: ["formatted_address", "name", "geometry"], // Include name field
+      });
 
-        autocompleteInstance.addListener("place_changed", () => {
-          const place = autocompleteInstance.getPlace();
-          if (place.formatted_address) {
-            onChange(place.formatted_address);
-          }
-        });
+      autocompleteInstance.addListener("place_changed", () => {
+        const place = autocompleteInstance.getPlace();
+        // Use formatted_address if available, otherwise fall back to name
+        const address = place.formatted_address || place.name || "";
+        if (address) {
+          onChange(address);
+        }
+      });
 
-        setAutocomplete(autocompleteInstance);
-      } catch (error) {
-        console.error("Error initializing Google Maps Autocomplete:", error);
-      }
-    };
-
-    // If script is already loaded
-    if (window.google?.maps?.places) {
-      initAutocomplete();
-      return;
+      setAutocomplete(autocompleteInstance);
+    } catch (error) {
+      console.error("Error initializing Google Maps Autocomplete:", error);
     }
-
-    // If script is loading, queue the callback
-    if (isScriptLoading) {
-      scriptLoadCallbacks.push(initAutocomplete);
-      return;
-    }
-
-    // Load the script
-    isScriptLoading = true;
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => {
-      isScriptLoading = false;
-      initAutocomplete();
-
-      // Execute all queued callbacks
-      scriptLoadCallbacks.forEach(callback => callback());
-      scriptLoadCallbacks.length = 0;
-    };
-
-    script.onerror = () => {
-      isScriptLoading = false;
-      console.error("Failed to load Google Maps script");
-    };
-
-    document.head.appendChild(script);
 
     return () => {
       // Cleanup autocomplete listener
@@ -85,7 +48,7 @@ const AddressAutocomplete = ({
         google.maps.event.clearInstanceListeners(autocomplete);
       }
     };
-  }, []);
+  }, [placesLibrary]);
 
   return (
     <input

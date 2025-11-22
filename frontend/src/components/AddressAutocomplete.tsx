@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useMapsLibrary } from "@vis.gl/react-google-maps";
 
 interface AddressAutocompleteProps {
@@ -15,7 +15,6 @@ const AddressAutocomplete = ({
   disabled = false,
 }: AddressAutocompleteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const placesLibrary = useMapsLibrary("places");
 
   useEffect(() => {
@@ -37,18 +36,14 @@ const AddressAutocomplete = ({
         }
       });
 
-      setAutocomplete(autocompleteInstance);
+      // Cleanup on unmount
+      return () => {
+        google.maps.event.clearInstanceListeners(autocompleteInstance);
+      };
     } catch (error) {
       console.error("Error initializing Google Maps Autocomplete:", error);
     }
-
-    return () => {
-      // Cleanup autocomplete listener
-      if (autocomplete) {
-        google.maps.event.clearInstanceListeners(autocomplete);
-      }
-    };
-  }, [placesLibrary, autocomplete, onChange]);
+  }, [placesLibrary]);
 
   return (
     <input

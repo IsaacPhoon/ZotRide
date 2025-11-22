@@ -14,7 +14,7 @@ createRoot(document.getElementById("root")!).render(
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <APIProvider
         apiKey={GOOGLE_MAPS_API_KEY}
-        libraries={["places", "routes", "geocoding"]}
+        libraries={["places", "routes", "geocoding", "marker"]}
       >
         <AuthProvider>
           <App />

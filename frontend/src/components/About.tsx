@@ -52,10 +52,11 @@ const About: React.FC = () => {
         });
         setShowRegistration(true);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Google Sign-In Error:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error ||
+        error.response?.data?.error ||
           "Failed to sign in with Google. Please try again."
       );
     } finally {
@@ -88,10 +89,11 @@ const About: React.FC = () => {
       setShowRegistration(false);
       setRegistrationData(null);
       // You can add navigation here if needed
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration Error:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error ||
+        error.response?.data?.error ||
           "Failed to complete registration. Please try again."
       );
     } finally {

@@ -100,10 +100,11 @@ const ProfileLicenseCard = ({
       if (onSaveChanges) {
         onSaveChanges();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Profile Update Error:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error ||
+        error.response?.data?.error ||
           "Failed to update profile. Please try again."
       );
     } finally {

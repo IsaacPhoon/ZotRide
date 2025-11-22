@@ -15,6 +15,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -43,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           const { user: verifiedUser } = await authAPI.verifyJWT();
           setUser(verifiedUser);
           tokenManager.setUser(verifiedUser);
-        } catch (error) {
+        } catch {
           // Token is invalid, clear auth state
           tokenManager.clearAuth();
           setUser(null);

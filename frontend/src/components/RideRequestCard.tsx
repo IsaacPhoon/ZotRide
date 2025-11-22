@@ -53,11 +53,12 @@ const RideRequestCard = ({
       if (onRideAccepted) {
         onRideAccepted();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error accepting ride:", err);
+      const error = err as { response?: { data?: { error?: string } }; message?: string };
       setError(
-        err.response?.data?.error ||
-          err.message ||
+        error.response?.data?.error ||
+          error.message ||
           "Failed to accept ride. Please try again."
       );
     } finally {

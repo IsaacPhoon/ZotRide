@@ -28,7 +28,6 @@ const JoinRidePopup = ({
   cost,
   onClose,
   onRideJoined,
-  isInActiveRide = false,
 }: JoinRidePopupProps) => {
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -102,10 +101,11 @@ const JoinRidePopup = ({
         onRideJoined();
       }
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error joining ride:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error || "Failed to join ride. Please try again."
+        error.response?.data?.error || "Failed to join ride. Please try again."
       );
     } finally {
       setIsJoining(false);
@@ -125,10 +125,11 @@ const JoinRidePopup = ({
         onRideJoined();
       }
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error leaving ride:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error || "Failed to leave ride. Please try again."
+        error.response?.data?.error || "Failed to leave ride. Please try again."
       );
     } finally {
       setIsLeaving(false);

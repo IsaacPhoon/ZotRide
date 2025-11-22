@@ -87,10 +87,11 @@ const ZotDriverApplication = () => {
       setModel("");
       setLicensePlate("");
       setLicenseImage("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Driver Application Error:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error ||
+        error.response?.data?.error ||
           "Failed to submit application. Please try again."
       );
     } finally {

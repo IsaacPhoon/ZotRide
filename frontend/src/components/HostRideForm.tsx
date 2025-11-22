@@ -125,12 +125,13 @@ const HostRideForm = ({
       setPriceOption("free");
       setComment("");
       setCommentLength(0);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Create Ride Error:", err);
+      const error = err as { response?: { data?: { error?: string } } };
 
       // Custom error message for driver not found
       let errorMessage =
-        err.response?.data?.error || "Failed to post ride. Please try again.";
+        error.response?.data?.error || "Failed to post ride. Please try again.";
       if (errorMessage === "Driver not found") {
         errorMessage = "You are not a driver!";
       }

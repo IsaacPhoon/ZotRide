@@ -62,10 +62,11 @@ const JoinRides = ({ refreshTrigger }: JoinRidesProps) => {
       );
       setRides(futureRides);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching rides:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error || "Failed to load rides. Please try again."
+        error.response?.data?.error || "Failed to load rides. Please try again."
       );
     } finally {
       setLoading(false);

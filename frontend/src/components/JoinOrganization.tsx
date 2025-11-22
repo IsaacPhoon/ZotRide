@@ -50,12 +50,13 @@ const JoinOrganization = ({ onOrganizationJoined }: JoinOrganizationProps) => {
       setTimeout(() => {
         setSuccess(null);
       }, 5000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error joining organization:", err);
+      const error = err as { response?: { data?: { error?: string }; status?: number } };
 
       // Handle specific error messages from backend
-      if (err.response?.data?.error) {
-        const errorMsg = err.response.data.error;
+      if (error.response?.data?.error) {
+        const errorMsg = error.response.data.error;
 
         // Customize error messages for better UX
         if (errorMsg.includes("not found")) {
@@ -65,7 +66,7 @@ const JoinOrganization = ({ onOrganizationJoined }: JoinOrganizationProps) => {
         } else {
           setError(errorMsg);
         }
-      } else if (err.response?.status === 401) {
+      } else if (error.response?.status === 401) {
         setError("Please log in to join an organization");
       } else {
         setError("Failed to join organization. Please try again.");

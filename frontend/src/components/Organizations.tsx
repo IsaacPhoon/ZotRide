@@ -45,9 +45,10 @@ const Organizations = () => {
       );
 
       setOrganizations(orgsWithMembers);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching organizations:", err);
-      setError(err.response?.data?.error || "Failed to load organizations");
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || "Failed to load organizations");
     } finally {
       setIsLoading(false);
     }

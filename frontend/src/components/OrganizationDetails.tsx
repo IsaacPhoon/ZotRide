@@ -55,7 +55,7 @@ const OrganizationDetails = ({
       try {
         const org = await organizationAPI.getOrganization(organizationId);
         setOrganization(org);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching organization:", err);
       } finally {
         setIsLoadingOrg(false);
@@ -70,11 +70,13 @@ const OrganizationDetails = ({
     if (showMembers && members.length === 0) {
       fetchMembers();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showMembers]);
 
   // Fetch members initially for AdminPanel
   useEffect(() => {
     fetchMembers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId]);
 
   const fetchMembers = async () => {
@@ -85,9 +87,10 @@ const OrganizationDetails = ({
         organizationId
       );
       setMembers(fetchedMembers);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching members:", err);
-      setMembersError(err.response?.data?.error || "Failed to load members");
+      const error = err as { response?: { data?: { error?: string } } };
+      setMembersError(error.response?.data?.error || "Failed to load members");
     } finally {
       setIsLoadingMembers(false);
     }

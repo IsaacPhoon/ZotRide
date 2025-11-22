@@ -1,12 +1,12 @@
-// @ts-nocheck
-import daisyuiThemes from 'daisyui/src/theming/themes'
+import daisyuiThemes from 'daisyui/src/theming/themes';
+import daisyui from 'daisyui';
 
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {},
   },
-  plugins: [require('daisyui')],
+  plugins: [daisyui],
   daisyui: {
     themes: [
       {

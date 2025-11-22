@@ -47,9 +47,10 @@ const CreateOrganization = ({
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error creating organization:", err);
-      setError(err.response?.data?.error || "Failed to create organization");
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || "Failed to create organization");
     } finally {
       setIsSubmitting(false);
     }

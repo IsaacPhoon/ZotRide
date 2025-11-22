@@ -48,7 +48,7 @@ const AddressAutocomplete = ({
         google.maps.event.clearInstanceListeners(autocomplete);
       }
     };
-  }, [placesLibrary]);
+  }, [placesLibrary, autocomplete, onChange]);
 
   return (
     <input

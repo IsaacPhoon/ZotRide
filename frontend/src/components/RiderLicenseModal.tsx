@@ -22,7 +22,7 @@ const RiderLicenseModal = ({ riderId, onClose }: RiderLicenseModalProps) => {
         setIsLoading(true);
         const user = await userAPI.getUserById(riderId);
         setUserData(user);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching rider info:", err);
         setError("Failed to load rider information");
       } finally {

@@ -42,11 +42,12 @@ const DriverRideCard = ({
       if (onRideCompleted) {
         onRideCompleted();
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error completing ride:", err);
+      const error = err as { response?: { data?: { error?: string } }; message?: string };
       setError(
-        err.response?.data?.error ||
-          err.message ||
+        error.response?.data?.error ||
+          error.message ||
           "Failed to complete ride. Please try again."
       );
     } finally {

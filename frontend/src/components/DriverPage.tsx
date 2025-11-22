@@ -46,9 +46,10 @@ const DriverPage: React.FC = () => {
       );
 
       setRides(futureRides);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching rider requests:", err);
-      setError(err.response?.data?.error || "Failed to load ride requests");
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || "Failed to load ride requests");
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +86,7 @@ const DriverPage: React.FC = () => {
       );
 
       setCurrentRides(futureRides);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching driver rides:", err);
       setCurrentRides([]);
     } finally {

@@ -25,7 +25,7 @@ const DriverLicenseModal = ({ driverId, onClose }: DriverLicenseModalProps) => {
         const user = await userAPI.getUserById(driver.user_id);
         setDriverData(driver);
         setUserData(user);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error fetching driver info:", err);
         setError("Failed to load driver information");
       } finally {

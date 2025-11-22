@@ -18,6 +18,7 @@ const ClubJoinRides = ({
   // Fetch organization rides on mount and when refreshTrigger changes
   useEffect(() => {
     fetchOrganizationRides();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [organizationId, refreshTrigger]);
 
   const fetchOrganizationRides = async () => {
@@ -37,9 +38,10 @@ const ClubJoinRides = ({
       );
 
       setRides(futureRides);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching organization rides:", err);
-      setError(err.response?.data?.error || "Failed to load rides");
+      const error = err as { response?: { data?: { error?: string } } };
+      setError(error.response?.data?.error || "Failed to load rides");
     } finally {
       setIsLoading(false);
     }

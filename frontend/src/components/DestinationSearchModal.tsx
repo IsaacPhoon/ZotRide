@@ -27,6 +27,7 @@ const DestinationSearchModal = ({
     if (isOpen && searchQuery) {
       searchRides();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, searchQuery]);
 
   const fetchCurrentUser = async () => {
@@ -74,10 +75,11 @@ const DestinationSearchModal = ({
 
       setRides(filteredRides);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error searching rides:", err);
+      const error = err as { response?: { data?: { error?: string } } };
       setError(
-        err.response?.data?.error || "Failed to search rides. Please try again."
+        error.response?.data?.error || "Failed to search rides. Please try again."
       );
     } finally {
       setLoading(false);

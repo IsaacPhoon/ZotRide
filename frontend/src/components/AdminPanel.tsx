@@ -28,9 +28,10 @@ const AdminPanel = ({
         is_admin: true,
       });
       onMembersUpdate(); // Refresh members list
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error promoting to admin:", err);
-      alert(err.response?.data?.error || "Failed to promote member to admin");
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || "Failed to promote member to admin");
     } finally {
       setIsUpdating(false);
     }
@@ -43,9 +44,10 @@ const AdminPanel = ({
         is_admin: false,
       });
       onMembersUpdate(); // Refresh members list
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error removing admin:", err);
-      alert(err.response?.data?.error || "Failed to remove admin status");
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || "Failed to remove admin status");
     } finally {
       setIsUpdating(false);
     }
@@ -64,9 +66,10 @@ const AdminPanel = ({
       setIsUpdating(true);
       await organizationAPI.removeMember(organizationId, userId);
       onMembersUpdate(); // Refresh members list
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error removing member:", err);
-      alert(err.response?.data?.error || "Failed to remove member");
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || "Failed to remove member");
     } finally {
       setIsUpdating(false);
     }
@@ -79,9 +82,10 @@ const AdminPanel = ({
         is_driver: true,
       });
       onMembersUpdate(); // Refresh members list
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error authorizing driver:", err);
-      alert(err.response?.data?.error || "Failed to authorize driver");
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || "Failed to authorize driver");
     } finally {
       setIsUpdating(false);
     }
@@ -94,9 +98,10 @@ const AdminPanel = ({
         is_driver: false,
       });
       onMembersUpdate(); // Refresh members list
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error revoking driver:", err);
-      alert(err.response?.data?.error || "Failed to revoke driver status");
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || "Failed to revoke driver status");
     } finally {
       setIsUpdating(false);
     }

@@ -3,7 +3,8 @@ import {
   Map,
   useMap,
   useMapsLibrary,
-  Marker,
+  AdvancedMarker,
+  Pin,
 } from "@vis.gl/react-google-maps";
 
 interface RouteMapProps {
@@ -163,34 +164,30 @@ const Directions = ({ pickupAddress, destinationAddress }: RouteMapProps) => {
     <>
       {/* Pickup Marker (Green) - Show whenever we have pickup coords */}
       {pickupCoords && (
-        <Marker
+        <AdvancedMarker
           position={pickupCoords}
           title="Pickup Location"
-          icon={{
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#10b981",
-            fillOpacity: 1,
-            strokeColor: "#ffffff",
-            strokeWeight: 3,
-          }}
-        />
+        >
+          <Pin
+            background={"#10b981"}
+            borderColor={"#ffffff"}
+            glyphColor={"#ffffff"}
+          />
+        </AdvancedMarker>
       )}
 
       {/* Destination Marker (Red) - Show whenever we have destination coords */}
       {destinationCoords && (
-        <Marker
+        <AdvancedMarker
           position={destinationCoords}
           title="Destination"
-          icon={{
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: "#ef4444",
-            fillOpacity: 1,
-            strokeColor: "#ffffff",
-            strokeWeight: 3,
-          }}
-        />
+        >
+          <Pin
+            background={"#ef4444"}
+            borderColor={"#ffffff"}
+            glyphColor={"#ffffff"}
+          />
+        </AdvancedMarker>
       )}
 
       {/* Route Information Panel - Only show when we have a complete route */}

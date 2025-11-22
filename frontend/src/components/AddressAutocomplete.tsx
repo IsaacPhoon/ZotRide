@@ -22,14 +22,12 @@ const AddressAutocomplete = ({
 
     try {
       const autocompleteInstance = new placesLibrary.Autocomplete(inputRef.current, {
-        // Remove types restriction to allow searching by name (establishments, addresses, etc.)
-        componentRestrictions: { country: "us" }, // Restrict to US locations
-        fields: ["formatted_address", "name", "geometry"], // Include name field
+        componentRestrictions: { country: "us" },
+        fields: ["formatted_address", "name", "geometry"],
       });
 
       autocompleteInstance.addListener("place_changed", () => {
         const place = autocompleteInstance.getPlace();
-        // Use formatted_address if available, otherwise fall back to name
         const address = place.formatted_address || place.name || "";
         if (address) {
           onChange(address);
